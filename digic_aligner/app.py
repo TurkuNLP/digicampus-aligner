@@ -16,8 +16,6 @@ app.config['DEBUGING'] = True
 app.config['TEMPLATES_AUTO_RELOAD']=True
 app.config['CODEDIR']=os.getenv("DIGIC_CODEHOME", "/home/ginter/digicampus-aligner")
 
-
-
 doc_collection=None
 
 @app.route("/")
@@ -47,7 +45,7 @@ def upload():
 
 def get_template_data(result):
     """
-{'qry_segmentation': {'segmented': ['keiju']}, 'hits': [{'target_id': 'd1', 'target_segmentation': {'segmented': ['Olen pieni keiju ja leijailen metsän reunoissa .', 'Tykkään tavata uusia ihmisiä .', 'Erityisesti sienestäjät ovat minulle mieluisia .', 'Kermassa .', 'Ha haaa .', 'Sienet on minun !', 'Ei niitä saa minulta ottaa pois .']}, 'matching_segments': [(0, 0, 5.44709292036094)], 'avg_match': 5.44709292036094}, {'target_id': 'd2', 'target_segmentation': {'segmented': ['Metsässä asuu keijut .', 'Ne on pieniä mutta todella vihaisia .', 'Ne tappaa sienestäjiä ja paistaa ne .', 'Kermassa .', 'Hyi .']}, 'matching_segments': [(0, 0, 4.038449243631546)], 'avg_match': 4.038449243631546}, {'target_id': 'd0', 'target_segmentation': {'segmented': ['Kylläpä olen iloinen pikkulintu !', 'Elämä maistuu ja taivas on sininen .', 'Kesä on tulossa .', 'Onhan minun elämäni kaunista .', 'Tsirp fucking tsirp !']}, 'matching_segments': [(0, 2, 2.7152629749459716)], 'avg_match': 2.7152629749459716}]}
+    {'qry_segmentation': {'segmented': ['keiju']}, 'hits': [{'target_id': 'd1', 'target_segmentation': {'segmented': ['Olen pieni keiju ja leijailen metsän reunoissa .', 'Tykkään tavata uusia ihmisiä .', 'Erityisesti sienestäjät ovat minulle mieluisia .', 'Kermassa .', 'Ha haaa .', 'Sienet on minun !', 'Ei niitä saa minulta ottaa pois .']}, 'matching_segments': [(0, 0, 5.44709292036094)], 'avg_match': 5.44709292036094}, {'target_id': 'd2', 'target_segmentation': {'segmented': ['Metsässä asuu keijut .', 'Ne on pieniä mutta todella vihaisia .', 'Ne tappaa sienestäjiä ja paistaa ne .', 'Kermassa .', 'Hyi .']}, 'matching_segments': [(0, 0, 4.038449243631546)], 'avg_match': 4.038449243631546}, {'target_id': 'd0', 'target_segmentation': {'segmented': ['Kylläpä olen iloinen pikkulintu !', 'Elämä maistuu ja taivas on sininen .', 'Kesä on tulossa .', 'Onhan minun elämäni kaunista .', 'Tsirp fucking tsirp !']}, 'matching_segments': [(0, 2, 2.7152629749459716)], 'avg_match': 2.7152629749459716}]}
     """
 
     template_data=[]

@@ -1,4 +1,3 @@
-import ufal.udpipe as udpipe
 import sklearn.feature_extraction
 import sklearn.metrics
 import numpy
@@ -40,14 +39,24 @@ class DocCollection:
     def __init__(self,doc_dicts,udpipe_pipeline=None,vectorizer=None):
         self.udpipe_pipeline=udpipe_pipeline
         self.docs=[Doc(doc_dict,udpipe_pipeline) for doc_dict in doc_dicts]
-
         #1) Pre-compute the doc2doc sim matrix
         self.doc_doc_sim_matrix_tfidf,self.vectorizer=doc_sim_matrix_tfidf(self.docs,vectorizer) #if vectorizer is None, this function makes one, let's store it
         self.doc_doc_sim_matrix_tfids_margin=margin_doc_sim(self.doc_doc_sim_matrix_tfidf) #calculate also the margin-method based matrix (I dont think this has ever been done before!)
 
-    def query_tfidf(self,text,margin_cutoff=2.0): #margin cutoff on sentences, anything below that is not considered
+    def query_by_doc_id(self,docid):
+        #Which doc?
+        print("LOOKING FOR",repr(docid))
+        print("IDS",list(doc.id for doc in self.docs))
+        qdoc=[doc for doc in self.docs if doc.id==docid][0]
+        return self.query_tfidf(qdoc=qdoc)
+        
+    def get_doc_ids(self):
+        return list(doc.id for doc in self.docs)
+        
+    def query_tfidf(self,text=None,qdoc=None,margin_cutoff=2.0): #margin cutoff on sentences, anything below that is not considered
         """Given a query text, find hitting documents and align them. Prepares a dictionary which can be returned to the user"""
-        qdoc=Doc({"text":text,"id":"qry"},udpipe_pipeline=self.udpipe_pipeline) #turn the query into a fake doc
+        if qdoc is None:
+            qdoc=Doc({"text":text,"id":"qry"},udpipe_pipeline=self.udpipe_pipeline) #turn the query into a fake doc
 
         doc_hits=[] #this will be a list of the hits
         for d in self.docs: #and compare against all docs (I don't think we should use a doc-embedding approach here since queries will be short, so we really want the alignment)
