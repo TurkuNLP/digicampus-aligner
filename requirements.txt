@@ -1,0 +1,9 @@
+flask
+laserembeddings
+numpy
+torch
+ufal.udpipe
+sklearn
+pyyaml
+requests
+flask-markdown

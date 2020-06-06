@@ -1,0 +1,16 @@
+{% for docpair in resultdata %}
+
+<div class="container border">
+
+  {% for qry,qcolor,tgt,tcolor in docpair %}
+
+  <div class="row">
+    <div class="col-6"><span style="color:{{qcolor}}">{{qry}}</span></div>
+    <div class="col-6"><span style="color:{{tcolor}}">{{tgt}}</span></div>
+  </div>
+  
+  {% endfor %}
+  
+</div>
+
+{% endfor %}
