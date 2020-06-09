@@ -76,7 +76,8 @@ class DocCollection:
             doc_result["target_segmentation"]=d.get_segmentation()
             doc_result["matching_segments"]=segment_pairs
             doc_result["avg_match"]=doc_avg
-            doc_hits.append(doc_result)
+            if qdoc.id!=d.id: # put this here so I have the least number of lines to change the indentation
+                doc_hits.append(doc_result)
         doc_hits.sort(key=lambda dhit:dhit["avg_match"],reverse=True) #sort so that best docs come first
 
         #now yet give some sort of info about the query
