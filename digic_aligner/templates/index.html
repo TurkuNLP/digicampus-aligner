@@ -100,6 +100,12 @@
 		    console.log(data["result_html"]);
 		    $("#result").html(data["result_html"]);
 		},
+		error: function() {},
+		statusCode: {
+		    400: function() {
+			alert( "No input text as query." );
+		    }
+		},
 	    });
 	};
 

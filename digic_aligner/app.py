@@ -90,7 +90,8 @@ def qry_text():
     global doc_collection
     text=flask.request.form["text"]
     if not text.strip():
-        return jsonify({"result_html":""}),200 #TODO: I GUESS SOME ERROR SHOULD BE SHOWN
+        #return jsonify({"result_html":""}),200 #TODO: I GUESS SOME ERROR SHOULD BE SHOWN
+        return "", 400
     
     ### TODO: UDPIPE SEEMS SOMEHOW THREAD-UNSAFE
     ### I HAVE TO RELOAD IT HERE I DONT KNOW WHY
