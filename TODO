@@ -1,7 +1,7 @@
 1) Test with real data
 - [done] remove the document itself as the return
 - if there are a larger number of documents (e.g. 40+), quite often one query doesn't work, have to switch to another and then switch back for it to work, or click multiple times
-- would be nice to show the document IDs for the returned documents
+- [done] would be nice to show the document IDs for the returned documents
 - if query by text, switch to query by document, text has to be manually removed
 - sentence segmentation: 'mm.' got broken down into two sentences
 - observation: high precision, low recall

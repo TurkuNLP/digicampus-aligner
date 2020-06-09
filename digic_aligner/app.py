@@ -53,9 +53,9 @@ def get_template_data(result):
     qry_segments=result["qry_segmentation"]["segmented"] #this is pretty much what we get from the query_tfidf
     for hit in result["hits"]:
 
-        # TODO: make this into a dictionary, store doc ids etc
         hit_template_data=[] #list of (qsentence,qcolor,tsentence,tcolor) used to fill the result template
-        
+        hit_template_data_dict = {"docid": hit["target_id"]} # {"docid": docid, "hit_segments": hit_template_data}
+
         hit_segments=hit["target_segmentation"]["segmented"]
         #TODO: can this be made somehow ... better?
         matching_qry=set(match[0] for match in hit["matching_segments"]) #these match in qry
@@ -72,7 +72,8 @@ def get_template_data(result):
                 tcolor="black"
             
             hit_template_data.append((qry,qcolor,tgt,tcolor))
-        template_data.append(hit_template_data)
+        hit_template_data_dict["hit_segments"] = hit_template_data
+        template_data.append(hit_template_data_dict)
     return template_data
 
 @app.route("/qry_by_id/<docid>",methods=['GET'])
