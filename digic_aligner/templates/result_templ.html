@@ -2,7 +2,12 @@
 
 <div class="container border">
 
-  {% for qry,qcolor,tgt,tcolor in docpair %}
+  <div class="row">
+    <div class="col-6"><span style="color:{{"blue"}}">{{""}}</span></div>
+    <div class="col-6"><span style="color:{{"blue"}}">{{"Document ID: "+docpair["docid"]}}</span></div>
+  </div>
+
+  {% for qry,qcolor,tgt,tcolor in docpair["hit_segments"] %}
 
   <div class="row">
     <div class="col-6"><span style="color:{{qcolor}}">{{qry}}</span></div>
