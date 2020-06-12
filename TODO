@@ -1,24 +1,38 @@
 1) Test with real data
 - [done] remove the document itself as the return
 - [done] would be nice to show the document IDs for the returned documents
-- if query by text, switch to query by document, text has to be manually removed
-- if another tab is opened, another set of data is uploaded, then the new data go to the old tab as well
-- sentence segmentation: 'mm.' got broken down into two sentences
+- [done] if another tab is opened, another set of data is uploaded, then the new data go to the old tab as well
+- [cannot fix] sentence segmentation: 'mm.' got broken down into two sentences
 - observation: high precision, low recall
 
 2) I think it would be good to try with euclidean distance but maybe it's not necessary
 
+Tested.
+
 3) API needs to be documented
+
+TODO
 
 4) Document similarity matrix (doc_sim_matrix_tfidf and/or margin_doc_sim) should be exposed in the API
 
-   The structure returned by query_by_doc_id and query_tfidf should be exposed as json
+4.1)   The structure returned by query_by_doc_id and query_tfidf should be exposed as json
+
+(almost done)
 
 5) Segmentation would be good to return in terms of character offsets (needs back-align to source text after udpipe)
 
+only if time
+
 6) udpipe is not thread-safe, some solution is missing
+
+TODO
 
 7) calls in API should be wrapped into try .. except so the application does not die on bad input
 
+TODO
+
 ...
 
+8) method and threshold could be made parameters of the launch script through env variables
+
+9) query by text is right now probably broken

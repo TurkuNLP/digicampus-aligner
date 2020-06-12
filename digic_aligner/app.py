@@ -20,6 +20,10 @@ app.config['CODEDIR']=os.getenv("DIGIC_CODEHOME", "/home/ginter/digicampus-align
 
 doc_collections={}
 
+@app.route("/docs")
+def help():
+    return flask.render_template("md.html",md=open("api_doc.md").read(),title="API docs"), 200
+
 @app.route("/")
 def index_page():
     return flask.render_template("index.html")
@@ -111,7 +115,7 @@ def qry_by_id(doc_collection_id,docid):
     template_data,highlight_data=get_template_data(result)
     rendered=flask.render_template("result_templ.html",resultdata=template_data)
     print("Queried collection",doc_collection_id,file=sys.stderr)
-    return jsonify({"result_html":rendered,"highlight_data":highlight_data}),200
+    return jsonify({"result_html":rendered,"highlight_data":highlight_data,"result":result}),200
 
 @app.route("/qrytxt/<doc_collection_id>",methods=['POST'])
 def qry_text(doc_collection_id):
