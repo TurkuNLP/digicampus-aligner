@@ -8,7 +8,14 @@ wget https://lindat.mff.cuni.cz/repository/xmlui/bitstream/handle/11234/1-3131/f
 cd ..
 ```
 
-Remember to pip install -r requirements.txt
+And then
+
+```
+pip install wheel
+pip install -r requirements.txt
+python3 -m laserembeddings download-models
+```
+
 
 # Run
 
