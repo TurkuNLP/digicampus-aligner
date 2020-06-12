@@ -98,14 +98,14 @@ def qry_by_id(doc_collection_id,docid):
     doc_collection=doc_collections.get(doc_collection_id)
     if doc_collection is None:
         return "Unknown collection", 400
-    result=doc_collection.query_by_doc_id(docid)
+    result=doc_collection.query_by_doc_id(docid,method="laser")
     template_data=get_template_data(result)
     rendered=flask.render_template("result_templ.html",resultdata=template_data)
     print("Queried collection",doc_collection_id,file=sys.stderr)
     return jsonify({"result_html":rendered}),200
 
 @app.route("/qrytxt/<doc_collection_id>",methods=['POST'])
-def qry_text():
+def qry_text(doc_collection_id):
     global doc_collections
     doc_collection=doc_collections.get(doc_collection_id)
     if doc_collection is None:
@@ -129,7 +129,7 @@ def qry_text():
 
     print("TEXT=",text)
     print(doc_collection)
-    result=doc_collection.query_tfidf(text)
+    result=doc_collection.query(text,method="laser")
     template_data=get_template_data(result)
     rendered=flask.render_template("result_templ.html",resultdata=template_data)
     print("RETURNING",rendered)

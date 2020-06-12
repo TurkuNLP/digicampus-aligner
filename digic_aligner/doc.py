@@ -4,16 +4,25 @@ import numpy
 import sys
 import yaml
 import ufal.udpipe as udpipe
+from laserembeddings import Laser
+import datetime
+
+laser = Laser()
 
 class Doc:
 
     def __init__(self,doc_dict,udpipe_pipeline=None):
+        global laser
         self.doc_dict=doc_dict #this dictionary can have anything the user ever wants but must have "text" field and "id" field
         self.text=doc_dict["text"]
         self.id=doc_dict["id"]
         if udpipe_pipeline is not None:
             self.preproc_udpipe(udpipe_pipeline)
-
+            
+            print(datetime.datetime.now().isoformat(),"Embedding",len(self.lines_and_tokens),"lines",file=sys.stderr,flush=True)
+            self.laser_emb=laser.embed_sentences(self.lines_and_tokens,lang="fi")
+            print(datetime.datetime.now().isoformat(),"Done",file=sys.stderr,flush=True)
+            
     def get_segmentation(self):
         #Tells the user how this document is segmented
         #TODO: modify this to tell character offsets rather than the actual sentences that have been destroyed by now by udpipe's tokenization
@@ -43,27 +52,31 @@ class DocCollection:
         self.doc_doc_sim_matrix_tfidf,self.vectorizer=doc_sim_matrix_tfidf(self.docs,vectorizer) #if vectorizer is None, this function makes one, let's store it
         self.doc_doc_sim_matrix_tfids_margin=margin_doc_sim(self.doc_doc_sim_matrix_tfidf) #calculate also the margin-method based matrix (I dont think this has ever been done before!)
         
-    def query_by_doc_id(self,docid):
+    def query_by_doc_id(self,docid,method):
         #Which doc?
         print("LOOKING FOR",repr(docid))
         print("IDS",list(doc.id for doc in self.docs))
         qdoc=[doc for doc in self.docs if doc.id==docid][0]
-        return self.query_tfidf(qdoc=qdoc)
+        return self.query(qdoc=qdoc,method=method)
         
     def get_doc_ids(self):
         return list(doc.id for doc in self.docs)
-        
-    def query_tfidf(self,text=None,qdoc=None,margin_cutoff=2.0): #margin cutoff on sentences, anything below that is not considered
+
+    def query(self,text=None,qdoc=None,method="tfidf",margin_cutoff=1.1): #margin cutoff on sentences, anything below that is not considered
         """Given a query text, find hitting documents and align them. Prepares a dictionary which can be returned to the user"""
         if qdoc is None:
             qdoc=Doc({"text":text,"id":"qry"},udpipe_pipeline=self.udpipe_pipeline) #turn the query into a fake doc
 
         doc_hits=[] #this will be a list of the hits
         for d in self.docs: #and compare against all docs (I don't think we should use a doc-embedding approach here since queries will be short, so we really want the alignment)
-            swise_sim=sentence_wise_sim_tfidf(qdoc,d,self.vectorizer)
+            if method=="tfidf":
+                swise_sim=sentence_wise_sim_tfidf(qdoc,d,self.vectorizer)
+            elif method=="laser":
+                swise_sim=sentence_wise_sim_laser(qdoc,d)
             overlaps=overlapping_segments(swise_sim)
             segment_pairs=[]
             for qry_sent_idx,d_sent_idx,margin in zip(*overlaps): #here we have the actual alignments of query sentences with d's sentences
+                print("MARGIN",margin,file=sys.stderr)
                 if margin<margin_cutoff:
                     break
                 segment_pairs.append((qry_sent_idx,d_sent_idx,margin)) #store these indices and margin so we can give them back to the user
@@ -129,6 +142,15 @@ def sentence_wise_sim_tfidf(d1_segm,d2_segm,vectorizer):
     d1_vectorized=vectorizer.transform(d1_segm.lines_and_tokens) #sentence-by-term
     d2_vectorized=vectorizer.transform(d2_segm.lines_and_tokens) #sentence-by-term
     segment_wise_matrix=sklearn.metrics.pairwise.cosine_similarity(d1_vectorized,d2_vectorized,dense_output=True)
+    #this is now d1 segments by d2 segments similarity matrix
+    return segment_wise_matrix
+
+def sentence_wise_sim_laser(d1_segm,d2_segm):
+
+    #can this be any simpler? :)
+    embeddings_d1 = d1_segm.laser_emb
+    embeddings_d2 = d2_segm.laser_emb
+    segment_wise_matrix=sklearn.metrics.pairwise.cosine_similarity(embeddings_d1,embeddings_d2,dense_output=True)
     #this is now d1 segments by d2 segments similarity matrix
     return segment_wise_matrix
 
