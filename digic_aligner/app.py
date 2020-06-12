@@ -32,7 +32,7 @@ def get_doc_similarity_matrix(doc_collection_id):
         return "Unknown collection", 400
     M=doc_collection.doc_doc_sim_matrix_tfids_margin.tolist()
     doc_ids=doc_collection.get_doc_ids()
-    return jsonify({"doc_ids",doc_ids,"M":M})
+    return jsonify({"doc_ids":doc_ids,"M":M})
 
     
 

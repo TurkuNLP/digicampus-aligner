@@ -25,6 +25,13 @@
 	 
 	 <div class="row">
 	   <div class="col">
+	     <span id="loaded_collection"></span>
+	   </div>
+	  </div>
+
+
+	 <div class="row">
+	   <div class="col">
 	     Query by document: <select class="custom-select" id="knowndocs"></select>
 	   </div>
 	 </div>
@@ -66,7 +73,7 @@
 	function upload_file() {
 	    var file_form_data = new FormData();
 	    file_form_data.append('file', $('#uploadfile').prop('files')[0]);
-
+	    $("#loaded_collection").html("Loading. Wait...");
 	    $.ajax({
 		type: 'POST',
 		url:  '/upload_docs',
@@ -85,6 +92,7 @@
 		    }
 		    console.log(data["indexed_documents"]);
 		    sessionStorage.setItem("doc_collection_id",data["doc_collection_id"]);
+		    $("#loaded_collection").html("Loaded collection. <a href='/get_doc_similarity_matrix/"+data["doc_collection_id"]+"'>Doc Similarity Matrix</a>");
 		},
 	    })
 	}
