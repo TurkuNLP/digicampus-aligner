@@ -6,22 +6,54 @@ import yaml
 import ufal.udpipe as udpipe
 from laserembeddings import Laser
 import datetime
+import torch
+import transformers
 
-laser = Laser()
+METHOD="bert"
+if METHOD=="bert":
+    bert_model = transformers.BertModel.from_pretrained("TurkuNLP/bert-base-finnish-cased-v1")
+    bert_model.eval()
+    if torch.cuda.is_available():
+        bert_model = bert_model.cuda()
+    bert_tokenizer = transformers.BertTokenizer.from_pretrained("TurkuNLP/bert-base-finnish-cased-v1")
+elif METHOD=="laser":
+    laser = Laser()
+
+def embed(data,bert_model,how_to_pool="CLS"):
+    with torch.no_grad(): #tell the model not to gather gradients
+        mask=data.clone().float() #
+        mask[data>0]=1.0
+        emb=bert_model(data.cuda(),attention_mask=mask.cuda()) #runs BERT and returns several things, we care about the first
+        #emb[0]  # batch x word x embedding
+        if how_to_pool=="AVG":
+            pooled=emb[0]*(mask.unsqueeze(-1)) #multiply everything by the mask
+            pooled=pooled.sum(1)/mask.sum(-1).unsqueeze(-1) #sum and divide by non-zero elements in mask to get masked average
+        elif how_to_pool=="CLS":
+            pooled=emb[0][:,0,:].squeeze() #Pick the first token as the embedding
+        else:
+            assert False, "how_to_pool should be CLS or AVG"
+            print("Pooled shape:",pooled.shape)
+    return pooled.cpu().numpy() #done! move data back to CPU and extract the numpy array
+                                      
 
 class Doc:
 
     def __init__(self,doc_dict,udpipe_pipeline=None):
-        global laser
+        global laser, bert_model, bert_tokenizer
         self.doc_dict=doc_dict #this dictionary can have anything the user ever wants but must have "text" field and "id" field
         self.text=doc_dict["text"]
         self.id=doc_dict["id"]
         if udpipe_pipeline is not None:
             self.preproc_udpipe(udpipe_pipeline)
             
-            print(datetime.datetime.now().isoformat(),"Embedding",len(self.lines_and_tokens),"lines",file=sys.stderr,flush=True)
-            self.laser_emb=laser.embed_sentences(self.lines_and_tokens,lang="fi")
-            print(datetime.datetime.now().isoformat(),"Done",file=sys.stderr,flush=True)
+            if METHOD=="laser":
+                self.laser_emb=laser.embed_sentences(self.lines_and_tokens,lang="fi")
+            elif METHOD=="bert":
+                tokenized_ids=[bert_tokenizer.encode(txt,add_special_tokens=True) for txt in self.lines_and_tokens] #this runs the BERT tokenizer, returns list of lists of integers
+                tokenized_ids_t=[torch.tensor(ids,dtype=torch.long) for ids in tokenized_ids] #turn lists of integers into torch tensors
+                tokenized_single_batch=torch.nn.utils.rnn.pad_sequence(tokenized_ids_t,batch_first=True)
+
+                self.bert_embedded=embed(tokenized_single_batch,bert_model)
             
     def get_segmentation(self):
         #Tells the user how this document is segmented
@@ -62,7 +94,7 @@ class DocCollection:
     def get_doc_ids(self):
         return list(doc.id for doc in self.docs)
 
-    def query(self,text=None,qdoc=None,method="tfidf",margin_cutoff=1.1): #margin cutoff on sentences, anything below that is not considered
+    def query(self,text=None,qdoc=None,method="tfidf",margin_cutoff=1.05): #margin cutoff on sentences, anything below that is not considered
         """Given a query text, find hitting documents and align them. Prepares a dictionary which can be returned to the user"""
         if qdoc is None:
             qdoc=Doc({"text":text,"id":"qry"},udpipe_pipeline=self.udpipe_pipeline) #turn the query into a fake doc
@@ -73,6 +105,8 @@ class DocCollection:
                 swise_sim=sentence_wise_sim_tfidf(qdoc,d,self.vectorizer)
             elif method=="laser":
                 swise_sim=sentence_wise_sim_laser(qdoc,d)
+            elif method=="bert":
+                swise_sim=sentence_wise_sim_bert(qdoc,d)
             overlaps=overlapping_segments(swise_sim)
             segment_pairs=[]
             for qry_sent_idx,d_sent_idx,margin in zip(*overlaps): #here we have the actual alignments of query sentences with d's sentences
@@ -154,6 +188,14 @@ def sentence_wise_sim_laser(d1_segm,d2_segm):
     #this is now d1 segments by d2 segments similarity matrix
     return segment_wise_matrix
 
+def sentence_wise_sim_bert(d1_segm,d2_segm):
+    embeddings_d1 = d1_segm.bert_embedded
+    embeddings_d2 = d2_segm.bert_embedded
+    segment_wise_matrix=sklearn.metrics.pairwise.cosine_similarity(embeddings_d1,embeddings_d2,dense_output=True)
+    #this is now d1 segments by d2 segments similarity matrix
+    return segment_wise_matrix
+
+
 # This takes the result of sentence_wise_sim() is agnostic to how that was done, right now we only have the tfidf version, but should work with anything
 def overlapping_segments(segment_wise_matrix):
     M=segment_wise_matrix #just make this shorter in name
@@ -200,7 +242,7 @@ if __name__=="__main__":
     #     print(doc_target.lines_and_tokens[target_idx])
     #     print(margin)
     #     print()
-    r=doc_collection.query_tfidf("Keiju leijailee metsässä, erityisesti reunoissa. Se paistaa sienestäjät kermassa.",margin_cutoff=2.5)
+    r=doc_collection.query("Keiju leijailee metsässä, erityisesti reunoissa. Se paistaa sienestäjät kermassa.",margin_cutoff=2.5)
     print(doc_collection.doc_doc_sim_matrix_tfids_margin.tolist())
     
     

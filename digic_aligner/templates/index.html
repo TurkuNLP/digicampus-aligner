@@ -9,7 +9,17 @@
 	  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
       <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
       
+      <style>
+	.highlighted {
+	  background-color: yellow;
+	}
 
+	.match {
+	color: green;
+	}
+
+	.nomatch {};
+      </style>
 	  <title>DigiCampus Demo</title>
      </head>
      <body>
@@ -69,6 +79,25 @@
       <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
       <script>
 
+	var highlightData;
+	
+	function highlight_on_click(clicked) {
+	  $(".resultspan").removeClass("highlighted");
+	clicked_id=clicked.attr('id');
+	clicked.addClass("highlighted");
+	to_highlight=highlightData[clicked_id];
+	if (to_highlight) {
+         for (id of to_highlight) {
+	    $("#"+id).addClass("highlighted");
+	  }
+	}
+	};
+	
+	function register_onclick_events() {
+	   console.log("Running onclick register");
+	   $(".resultspan").click(function () {console.log("Clicked!");highlight_on_click($(this));});
+	};
+	
 	/* This happens when you click the uploadfile */	
 	function upload_file() {
 	    var file_form_data = new FormData();
@@ -123,8 +152,11 @@
 		url: "/qry_by_id/"+sessionStorage.doc_collection_id+"/"+($("#knowndocs").val()),   //The name of the script you are calling
 		data: { docidtext: $("#textinput").val()},
 		success: function(data) {
-		    console.log(data["result_html"]);
-		    $("#result").html(data["result_html"]);
+		   console.log(data["result_html"]);
+                   $("#result").html(data["result_html"]);
+		   register_onclick_events();
+		   highlightData=data["highlight_data"];
+								  
 		},
 	    });
 	};

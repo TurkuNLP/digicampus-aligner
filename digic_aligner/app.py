@@ -65,32 +65,41 @@ def get_template_data(result):
     """
 
     template_data=[]
+
+    highlight_data={} #id of what is clicked -> [ids of what is highlighted]
     
     qry_segments=result["qry_segmentation"]["segmented"] #this is pretty much what we get from the query_tfidf
-    for hit in result["hits"]:
+    for docidx,hit in enumerate(result["hits"]):
 
         hit_template_data=[] #list of (qsentence,qcolor,tsentence,tcolor) used to fill the result template
         hit_template_data_dict = {"docid": hit["target_id"]} # {"docid": docid, "hit_segments": hit_template_data}
 
         hit_segments=hit["target_segmentation"]["segmented"]
         #TODO: can this be made somehow ... better?
+        #hit["matching_segments"] sequence of (q_idx,tgt_idx,margin)
+        for q_idx,tgt_idx,margin in hit["matching_segments"]:
+            q_span=f"span_qry_{docidx}_{q_idx}"
+            t_span=f"span_target_{docidx}_{tgt_idx}"
+            highlight_data.setdefault(q_span,[]).append(t_span)
+            highlight_data.setdefault(t_span,[]).append(q_span)
         matching_qry=set(match[0] for match in hit["matching_segments"]) #these match in qry
         matching_tgt=set(match[1] for match in hit["matching_segments"]) #these match in target
         for i,(qry,tgt) in enumerate(itertools.zip_longest(qry_segments,hit_segments,fillvalue="")):
             if i in matching_qry:
-                qcolor="green"
+                qclass="match"
             else:
-                qcolor="black"
+                qclass="nonmatch"
             
             if i in matching_tgt:
-                tcolor="green"
+                tclass="match"
             else:
-                tcolor="black"
+                tclass="nonmatch"
             
-            hit_template_data.append((qry,qcolor,tgt,tcolor))
+            hit_template_data.append((docidx,i,qry,qclass,tgt,tclass))
         hit_template_data_dict["hit_segments"] = hit_template_data
         template_data.append(hit_template_data_dict)
-    return template_data
+    print("HIGHLIGHT DATA",highlight_data)
+    return template_data,highlight_data
 
 @app.route("/qry_by_id/<doc_collection_id>/<docid>",methods=['GET'])
 def qry_by_id(doc_collection_id,docid):
@@ -98,11 +107,11 @@ def qry_by_id(doc_collection_id,docid):
     doc_collection=doc_collections.get(doc_collection_id)
     if doc_collection is None:
         return "Unknown collection", 400
-    result=doc_collection.query_by_doc_id(docid,method="laser")
-    template_data=get_template_data(result)
+    result=doc_collection.query_by_doc_id(docid,method="bert")
+    template_data,highlight_data=get_template_data(result)
     rendered=flask.render_template("result_templ.html",resultdata=template_data)
     print("Queried collection",doc_collection_id,file=sys.stderr)
-    return jsonify({"result_html":rendered}),200
+    return jsonify({"result_html":rendered,"highlight_data":highlight_data}),200
 
 @app.route("/qrytxt/<doc_collection_id>",methods=['POST'])
 def qry_text(doc_collection_id):
