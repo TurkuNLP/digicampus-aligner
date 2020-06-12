@@ -1,3 +1,4 @@
+import sys
 import flask
 import os
 from flask import jsonify, url_for
@@ -7,6 +8,7 @@ from digic_aligner import doc
 import ufal.udpipe as udpipe
 import html
 import itertools
+import datetime
 
 app = flask.Flask(__name__)
 
@@ -16,15 +18,28 @@ app.config['DEBUGING'] = True
 app.config['TEMPLATES_AUTO_RELOAD']=True
 app.config['CODEDIR']=os.getenv("DIGIC_CODEHOME", "/home/ginter/digicampus-aligner")
 
-doc_collection=None
+doc_collections={}
 
 @app.route("/")
 def index_page():
     return flask.render_template("index.html")
 
+@app.route("/get_doc_similarity_matrix/<doc_collection_id>",methods=['GET'])
+def get_doc_similarity_matrix(doc_collection_id):
+    global doc_collections
+    doc_collection=doc_collections.get(doc_collection_id)
+    if doc_collection is None:
+        return "Unknown collection", 400
+    M=doc_collection.doc_doc_sim_matrix_tfids_margin.tolist()
+    doc_ids=doc_collection.get_doc_ids()
+    return jsonify({"doc_ids",doc_ids,"M":M})
+
+    
+
 @app.route("/upload_docs",methods=['POST'])
 def upload():
-    global doc_collection
+    global doc_collections
+    doc_collection_id=datetime.datetime.now().isoformat()
     uploaded_file=flask.request.files.get('file')
     yaml_data=uploaded_file.read().decode("utf-8")
     data=yaml.load(yaml_data)
@@ -39,9 +54,10 @@ def upload():
     udpipe_pipeline=udpipe.Pipeline(udpipe_model,"tokenize","none","none","horizontal") # horizontal: ret
     
     doc_collection=doc.DocCollection(data,udpipe_pipeline=udpipe_pipeline)
+    doc_collections[doc_collection_id]=doc_collection
     indexed_docs=doc_collection.get_doc_ids()
     print("Indexed:",indexed_docs)
-    return jsonify({"indexed_documents":indexed_docs}),200
+    return jsonify({"indexed_documents":indexed_docs,"doc_collection_id":doc_collection_id}),200
 
 def get_template_data(result):
     """
@@ -75,18 +91,24 @@ def get_template_data(result):
         template_data.append(hit_template_data)
     return template_data
 
-@app.route("/qry_by_id/<docid>",methods=['GET'])
-def qry_by_id(docid):
-    global doc_collection
+@app.route("/qry_by_id/<doc_collection_id>/<docid>",methods=['GET'])
+def qry_by_id(doc_collection_id,docid):
+    global doc_collections
+    doc_collection=doc_collections.get(doc_collection_id)
+    if doc_collection is None:
+        return "Unknown collection", 400
     result=doc_collection.query_by_doc_id(docid)
     template_data=get_template_data(result)
     rendered=flask.render_template("result_templ.html",resultdata=template_data)
-    print("RETURNING",rendered)
+    print("Queried collection",doc_collection_id,file=sys.stderr)
     return jsonify({"result_html":rendered}),200
 
-@app.route("/qrytxt",methods=['POST'])
+@app.route("/qrytxt/<doc_collection_id>",methods=['POST'])
 def qry_text():
-    global doc_collection
+    global doc_collections
+    doc_collection=doc_collections.get(doc_collection_id)
+    if doc_collection is None:
+        return "Unknown collection", 400
     text=flask.request.form["text"]
     if not text.strip():
         return jsonify({"result_html":""}),200 #TODO: I GUESS SOME ERROR SHOULD BE SHOWN

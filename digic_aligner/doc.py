@@ -3,7 +3,7 @@ import sklearn.metrics
 import numpy
 import sys
 import yaml
-
+import ufal.udpipe as udpipe
 
 class Doc:
 
@@ -42,7 +42,7 @@ class DocCollection:
         #1) Pre-compute the doc2doc sim matrix
         self.doc_doc_sim_matrix_tfidf,self.vectorizer=doc_sim_matrix_tfidf(self.docs,vectorizer) #if vectorizer is None, this function makes one, let's store it
         self.doc_doc_sim_matrix_tfids_margin=margin_doc_sim(self.doc_doc_sim_matrix_tfidf) #calculate also the margin-method based matrix (I dont think this has ever been done before!)
-
+        
     def query_by_doc_id(self,docid):
         #Which doc?
         print("LOOKING FOR",repr(docid))
@@ -178,6 +178,6 @@ if __name__=="__main__":
     #     print(margin)
     #     print()
     r=doc_collection.query_tfidf("Keiju leijailee metsässä, erityisesti reunoissa. Se paistaa sienestäjät kermassa.",margin_cutoff=2.5)
-    print(r)
+    print(doc_collection.doc_doc_sim_matrix_tfids_margin.tolist())
     
     

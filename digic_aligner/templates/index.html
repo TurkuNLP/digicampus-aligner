@@ -23,7 +23,6 @@
 	   </div>
 	  </div>
 	 
-
 	 <div class="row">
 	   <div class="col">
 	     Query by document: <select class="custom-select" id="knowndocs"></select>
@@ -85,6 +84,7 @@
 			$("#knowndocs").append(`<option>${data["indexed_documents"][i]}</option>`);
 		    }
 		    console.log(data["indexed_documents"]);
+		    sessionStorage.setItem("doc_collection_id",data["doc_collection_id"]);
 		},
 	    })
 	}
@@ -94,7 +94,7 @@
 	function do_text_query() {
 	    $.ajax({
 		type: "POST",    //define the type of ajax call (POST, GET, etc)
-		url: "/qrytxt",   //The name of the script you are calling
+		url: "/qrytxt/"+sessionStorage.doc_collection_id,   //The name of the script you are calling
 		data: { text: $("#textinput").val()},
 		success: function(data) {
 		    console.log(data["result_html"]);
@@ -106,7 +106,7 @@
 	function do_docid_query() {
 	    $.ajax({
 		type: "GET",    //define the type of ajax call (POST, GET, etc)
-		url: "/qry_by_id/"+($("#knowndocs").val()),   //The name of the script you are calling
+		url: "/qry_by_id/"+sessionStorage.doc_collection_id+"/"+($("#knowndocs").val()),   //The name of the script you are calling
 		data: { docidtext: $("#textinput").val()},
 		success: function(data) {
 		    console.log(data["result_html"]);
