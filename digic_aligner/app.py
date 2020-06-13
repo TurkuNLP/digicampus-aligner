@@ -118,6 +118,7 @@ def qry_by_id(doc_collection_id,docid):
     template_data,highlight_data=get_template_data(result)
     rendered=flask.render_template("result_templ.html",resultdata=template_data)
     print("Queried collection",doc_collection_id,file=sys.stderr)
+    #print("HIGHLIGHT_DATA:", highlight_data)
     #return jsonify({"result_html":rendered,"highlight_data":highlight_data,"result":result}),200
     return jsonify({"result_html":rendered,"highlight_data":highlight_data}), 200 #,"result":result}),200
 
@@ -129,8 +130,7 @@ def qry_text(doc_collection_id):
         return "Unknown collection", 400
     text=flask.request.form["text"]
     if not text.strip():
-        #return jsonify({"result_html":""}),200 #TODO: I GUESS SOME ERROR SHOULD BE SHOWN
-        return "", 400
+        return "No input text as query", 400
     
     ### TODO: UDPIPE SEEMS SOMEHOW THREAD-UNSAFE
     ### I HAVE TO RELOAD IT HERE I DONT KNOW WHY
@@ -146,11 +146,12 @@ def qry_text(doc_collection_id):
 
     print("TEXT=",text)
     print(doc_collection)
-    print("TEXT type",text.__class__)
-    print("TEXT len", len(text))
     result=doc_collection.query(text,method=METHOD,margin_cutoff=THRESHOLD)
     template_data,highlight_data=get_template_data(result)
     rendered=flask.render_template("result_templ.html",resultdata=template_data)
     print("RETURNING",rendered)
-    return jsonify({"result_html":rendered}),200
+    #print('HIGHLIGHT_DATA', highlight_data)
+    print("Queried collection",doc_collection_id,file=sys.stderr)
+    #return jsonify({"result_html":rendered}),200
+    return jsonify({"result_html":rendered,"highlight_data":highlight_data}), 200 #,"result":result}),200
 

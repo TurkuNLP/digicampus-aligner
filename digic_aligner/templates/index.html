@@ -82,15 +82,16 @@
 	var highlightData;
 	
 	function highlight_on_click(clicked) {
-	  $(".resultspan").removeClass("highlighted");
-	clicked_id=clicked.attr('id');
-	clicked.addClass("highlighted");
-	to_highlight=highlightData[clicked_id];
-	if (to_highlight) {
-         for (id of to_highlight) {
-	    $("#"+id).addClass("highlighted");
-	  }
-	}
+	    $(".resultspan").removeClass("highlighted");
+	    clicked_id=clicked.attr('id');
+	    to_highlight=highlightData[clicked_id];
+	    if (to_highlight) {
+	         clicked.addClass("highlighted");
+	         //console.log(to_highlight.length);
+                 for (id of to_highlight) {
+	         $("#"+id).addClass("highlighted");
+	         }
+	    }
 	};
 	
 	function register_onclick_events() {
@@ -136,13 +137,9 @@
 		success: function(data) {
 		    console.log(data["result_html"]);
 		    $("#result").html(data["result_html"]);
-		},
-		error: function() {},
-		statusCode: {
-		    400: function() {
-			alert( "No input text as query." );
-		    }
-		},
+		    register_onclick_events();
+		    highlightData=data["highlight_data"];
+	        },
 	    });
 	};
 
