@@ -4,6 +4,7 @@
 - [done] if another tab is opened, another set of data is uploaded, then the new data go to the old tab as well
 - [cannot fix] sentence segmentation: 'mm.' got broken down into two sentences
 - observation: high precision, low recall
+- tfidf-vectorizer from parsebank gave worse results on the tilinpäätös data, turned off atm
 
 2) I think it would be good to try with euclidean distance but maybe it's not necessary
 

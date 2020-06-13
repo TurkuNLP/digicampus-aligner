@@ -5,6 +5,7 @@ from flask import jsonify, url_for
 import yaml
 import requests
 from digic_aligner import doc
+from digic_aligner.variables import METHOD, THRESHOLD
 import ufal.udpipe as udpipe
 import html
 import itertools
@@ -17,8 +18,15 @@ Markdown(app)
 app.config['DEBUGING'] = True
 app.config['TEMPLATES_AUTO_RELOAD']=True
 app.config['CODEDIR']=os.getenv("DIGIC_CODEHOME", "/home/ginter/digicampus-aligner")
-METHOD=os.getenv("METHOD", "tfidf")
-THRESHOLD=float(os.getenv("THRESHOLD", "1.5"))
+
+#METHOD=os.getenv("METHOD", "tfidf")
+#THRESHOLD=float(os.getenv("THRESHOLD", "1.5"))
+if METHOD=="tfidf":
+    # Results on the tilinpäätös data not good, turn off
+    #import pickle
+    #with open("Data/vectorizer.pickle",'rb') as f:
+    #    vectorizer=pickle.load(f)
+    vectorizer=None
 
 doc_collections={}
 
@@ -44,7 +52,7 @@ def get_doc_similarity_matrix(doc_collection_id):
 
 @app.route("/upload_docs",methods=['POST'])
 def upload():
-    global doc_collections
+    global doc_collections, vectorizer
     doc_collection_id=datetime.datetime.now().isoformat()
     uploaded_file=flask.request.files.get('file')
     yaml_data=uploaded_file.read().decode("utf-8")
@@ -59,7 +67,7 @@ def upload():
     udpipe_model=udpipe.Model.load(modelpath)
     udpipe_pipeline=udpipe.Pipeline(udpipe_model,"tokenize","none","none","horizontal") # horizontal: ret
     
-    doc_collection=doc.DocCollection(data,udpipe_pipeline=udpipe_pipeline)
+    doc_collection=doc.DocCollection(data,udpipe_pipeline=udpipe_pipeline,vectorizer=vectorizer)
     doc_collections[doc_collection_id]=doc_collection
     indexed_docs=doc_collection.get_doc_ids()
     print("Indexed:",indexed_docs)

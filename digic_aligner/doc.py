@@ -9,9 +9,10 @@ from laserembeddings import Laser
 import datetime
 import torch
 import transformers
+from digic_aligner.variables import METHOD, THRESHOLD
 
-METHOD=float(os.getenv("THRESHOLD", "1.5"))
-METHOD=os.getenv("METHOD", "tfidf")
+#THRESHOLD=float(os.getenv("THRESHOLD", "1.5"))
+#METHOD=os.getenv("METHOD", "tfidf")
 if METHOD=="bert":
     bert_model = transformers.BertModel.from_pretrained("TurkuNLP/bert-base-finnish-cased-v1")
     bert_model.eval()
