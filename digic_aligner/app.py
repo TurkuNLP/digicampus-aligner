@@ -17,6 +17,8 @@ Markdown(app)
 app.config['DEBUGING'] = True
 app.config['TEMPLATES_AUTO_RELOAD']=True
 app.config['CODEDIR']=os.getenv("DIGIC_CODEHOME", "/home/ginter/digicampus-aligner")
+METHOD=os.getenv("METHOD", "tfidf")
+THRESHOLD=float(os.getenv("THRESHOLD", "1.5"))
 
 doc_collections={}
 
@@ -107,19 +109,21 @@ def get_template_data(result):
 
 @app.route("/qry_by_id/<doc_collection_id>/<docid>",methods=['GET'])
 def qry_by_id(doc_collection_id,docid):
-    global doc_collections
+    global doc_collections, THRESHOLD
     doc_collection=doc_collections.get(doc_collection_id)
     if doc_collection is None:
         return "Unknown collection", 400
-    result=doc_collection.query_by_doc_id(docid,method="bert")
+    result=doc_collection.query_by_doc_id(docid,method=METHOD,margin_cutoff=THRESHOLD)
+    print("RESULT:\n",result, file=sys.stderr)
     template_data,highlight_data=get_template_data(result)
     rendered=flask.render_template("result_templ.html",resultdata=template_data)
     print("Queried collection",doc_collection_id,file=sys.stderr)
-    return jsonify({"result_html":rendered,"highlight_data":highlight_data,"result":result}),200
+    #return jsonify({"result_html":rendered,"highlight_data":highlight_data,"result":result}),200
+    return jsonify({"result_html":rendered,"highlight_data":highlight_data}), 200 #,"result":result}),200
 
 @app.route("/qrytxt/<doc_collection_id>",methods=['POST'])
 def qry_text(doc_collection_id):
-    global doc_collections
+    global doc_collections, THRESHOLD
     doc_collection=doc_collections.get(doc_collection_id)
     if doc_collection is None:
         return "Unknown collection", 400
@@ -142,8 +146,10 @@ def qry_text(doc_collection_id):
 
     print("TEXT=",text)
     print(doc_collection)
-    result=doc_collection.query(text,method="laser")
-    template_data=get_template_data(result)
+    print("TEXT type",text.__class__)
+    print("TEXT len", len(text))
+    result=doc_collection.query(text,method=METHOD,margin_cutoff=THRESHOLD)
+    template_data,highlight_data=get_template_data(result)
     rendered=flask.render_template("result_templ.html",resultdata=template_data)
     print("RETURNING",rendered)
     return jsonify({"result_html":rendered}),200

@@ -17,7 +17,7 @@ TODO
 
 4.1)   The structure returned by query_by_doc_id and query_tfidf should be exposed as json
 
-(almost done)
+(almost done, commented out atm)
 
 5) Segmentation would be good to return in terms of character offsets (needs back-align to source text after udpipe)
 
@@ -34,5 +34,7 @@ TODO
 ...
 
 8) method and threshold could be made parameters of the launch script through env variables
+[done]
 
 9) query by text is right now probably broken
+[fixed]
