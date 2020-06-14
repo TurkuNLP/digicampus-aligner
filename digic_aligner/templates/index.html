@@ -59,9 +59,15 @@
 	       
 	 <div class="row">
 	   <div class="col-1">
-	     <button type="button" id="sendtxtbutton" class="btn btn-primary">Query</button>
+	     <button type="button" id="sendtxtbutton" class="btn btn-primary">Text query</button>
 	   </div>
 	 </div>
+
+	 <div class="row">
+	   <div class="col">
+	     <span id="search_results"></span>
+	   </div>
+	  </div>
 	 
 
 	 <div class="row pt-3" id="result">
@@ -137,6 +143,8 @@
 		success: function(data) {
 		    console.log(data["result_html"]);
 		    $("#result").html(data["result_html"]);
+		    sessionStorage.setItem("search_results",data["query_id"]);
+		    $("#search_results").html("<a href='/get_search_results/"+data["query_id"]+"'>Search result</a>");
 		    register_onclick_events();
 		    highlightData=data["highlight_data"];
 	        },
@@ -149,8 +157,10 @@
 		url: "/qry_by_id/"+sessionStorage.doc_collection_id+"/"+($("#knowndocs").val()),   //The name of the script you are calling
 		data: { docidtext: $("#textinput").val()},
 		success: function(data) {
-		   console.log(data["result_html"]);
-                   $("#result").html(data["result_html"]);
+		    console.log(data["result_html"]);
+		    $("#result").html(data["result_html"]);
+		    sessionStorage.setItem("search_results",data["query_id"]);
+		    $("#search_results").html("<a href='/get_search_results/"+data["query_id"]+"'>Search result</a>");
 		   register_onclick_events();
 		   highlightData=data["highlight_data"];
 								  

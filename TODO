@@ -15,10 +15,8 @@ Tested.
 TODO
 
 4) Document similarity matrix (doc_sim_matrix_tfidf and/or margin_doc_sim) should be exposed in the API
-
-4.1)   The structure returned by query_by_doc_id and query_tfidf should be exposed as json
-
-(almost done, commented out atm)
+    4.1)   The structure returned by query_by_doc_id and query_tfidf should be exposed as json
+[done]
 
 5) Segmentation would be good to return in terms of character offsets (needs back-align to source text after udpipe)
 

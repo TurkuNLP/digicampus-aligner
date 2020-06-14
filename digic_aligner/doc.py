@@ -117,9 +117,10 @@ class DocCollection:
                 print("MARGIN",margin,file=sys.stderr)
                 if margin<margin_cutoff:
                     break
-                segment_pairs.append((qry_sent_idx,d_sent_idx,margin)) #store these indices and margin so we can give them back to the user
+                # numpy numbers cannot be jsonified later, convert type first
+                segment_pairs.append((int(qry_sent_idx),int(d_sent_idx),float(margin))) #store these indices and margin so we can give them back to the user
             if len(segment_pairs)>0:
-                doc_avg=sum(margin for i1,i2,margin in segment_pairs)/len(segment_pairs)
+                doc_avg=float(sum(margin for i1,i2,margin in segment_pairs)/len(segment_pairs))
             else:
                 continue #this one doesnt make the result
             doc_result={}

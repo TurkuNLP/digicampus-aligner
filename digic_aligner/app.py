@@ -29,6 +29,7 @@ if METHOD=="tfidf":
     vectorizer=None
 
 doc_collections={}
+search_results={}
 
 @app.route("/docs")
 def help():
@@ -37,6 +38,15 @@ def help():
 @app.route("/")
 def index_page():
     return flask.render_template("index.html")
+
+@app.route("/get_search_results/<doc_collection_id>",methods=['GET'])
+def get_search_results(doc_collection_id):
+    global search_results
+    try:
+        result=search_results[doc_collection_id]
+        return jsonify({"search_results":result})
+    except KeyError:
+        return "Unknown query",400
 
 @app.route("/get_doc_similarity_matrix/<doc_collection_id>",methods=['GET'])
 def get_doc_similarity_matrix(doc_collection_id):
@@ -117,22 +127,23 @@ def get_template_data(result):
 
 @app.route("/qry_by_id/<doc_collection_id>/<docid>",methods=['GET'])
 def qry_by_id(doc_collection_id,docid):
-    global doc_collections, THRESHOLD
+    global doc_collections, THRESHOLD, search_results
     doc_collection=doc_collections.get(doc_collection_id)
     if doc_collection is None:
         return "Unknown collection", 400
     result=doc_collection.query_by_doc_id(docid,method=METHOD,margin_cutoff=THRESHOLD)
+    query_id=doc_collection_id+docid
+    search_results[query_id]=result
     print("RESULT:\n",result, file=sys.stderr)
     template_data,highlight_data=get_template_data(result)
     rendered=flask.render_template("result_templ.html",resultdata=template_data)
     print("Queried collection",doc_collection_id,file=sys.stderr)
     #print("HIGHLIGHT_DATA:", highlight_data)
-    #return jsonify({"result_html":rendered,"highlight_data":highlight_data,"result":result}),200
-    return jsonify({"result_html":rendered,"highlight_data":highlight_data}), 200 #,"result":result}),200
+    return jsonify({"result_html":rendered,"highlight_data":highlight_data,"query_id":query_id}),200
 
 @app.route("/qrytxt/<doc_collection_id>",methods=['POST'])
 def qry_text(doc_collection_id):
-    global doc_collections, THRESHOLD
+    global doc_collections, THRESHOLD, search_results
     doc_collection=doc_collections.get(doc_collection_id)
     if doc_collection is None:
         return "Unknown collection", 400
@@ -155,11 +166,12 @@ def qry_text(doc_collection_id):
     print("TEXT=",text)
     print(doc_collection)
     result=doc_collection.query(text,method=METHOD,margin_cutoff=THRESHOLD)
+    query_id=doc_collection_id
+    search_results[query_id]=result
     template_data,highlight_data=get_template_data(result)
     rendered=flask.render_template("result_templ.html",resultdata=template_data)
     print("RETURNING",rendered)
     #print('HIGHLIGHT_DATA', highlight_data)
     print("Queried collection",doc_collection_id,file=sys.stderr)
-    #return jsonify({"result_html":rendered}),200
-    return jsonify({"result_html":rendered,"highlight_data":highlight_data}), 200 #,"result":result}),200
+    return jsonify({"result_html":rendered,"highlight_data":highlight_data,"query_id":query_id}),200
 
