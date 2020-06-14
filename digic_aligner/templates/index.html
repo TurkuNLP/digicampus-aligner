@@ -147,7 +147,13 @@
 		    $("#search_results").html("<a href='/get_search_results/"+data["query_id"]+"'>Search result</a>");
 		    register_onclick_events();
 		    highlightData=data["highlight_data"];
-	        },
+		},
+		error: function(){},
+		statusCode: {
+		    400: function(){
+			alert("No input text as query.");
+		    }
+		}
 	    });
 	};
 
