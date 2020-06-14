@@ -140,8 +140,9 @@
 		type: "POST",    //define the type of ajax call (POST, GET, etc)
 		url: "/qrytxt/"+sessionStorage.doc_collection_id,   //The name of the script you are calling
 		data: { text: $("#textinput").val()},
-		success: function(data) {
-		    console.log(data["result_html"]);
+	        success: function(data) {
+		    console.log(data["result_html"]);	  
+		    if (data["result_html"]===""){alert("No matching results.")}
 		    $("#result").html(data["result_html"]);
 		    sessionStorage.setItem("search_results",data["query_id"]);
 		    $("#search_results").html("<a href='/get_search_results/"+data["query_id"]+"'>Search result</a>");
@@ -149,7 +150,7 @@
 		    highlightData=data["highlight_data"];
 		},
 		error: function(){},
-		statusCode: {
+		    statusCode: {
 		    400: function(){
 			alert("No input text as query.");
 		    }
@@ -164,6 +165,7 @@
 		data: { docidtext: $("#textinput").val()},
 		success: function(data) {
 		    console.log(data["result_html"]);
+		    if (data["result_html"]===""){alert("No matching results.")}
 		    $("#result").html(data["result_html"]);
 		    sessionStorage.setItem("search_results",data["query_id"]);
 		    $("#search_results").html("<a href='/get_search_results/"+data["query_id"]+"'>Search result</a>");
