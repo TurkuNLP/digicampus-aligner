@@ -29,9 +29,17 @@
 
 	 <div class="row">
 	   <div class="col">
-	     <input type="file" id="uploadfile" name="NewCsvUpload">
+	      <span id="docs"></span>
 	   </div>
 	  </div>
+	 
+
+	 <div class="row">
+	   <div class="col">
+	     <input type="file" id="uploadfile" name="NewCsvUpload">
+	   </div>
+	 </div>
+
 	 
 	 <div class="row">
 	   <div class="col">
@@ -85,6 +93,7 @@
       <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
       <script>
 
+	$("#docs").html("<a href='/docs'>Documentation</a>");
 	var highlightData;
 	
 	function highlight_on_click(clicked) {
