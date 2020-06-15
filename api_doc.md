@@ -6,7 +6,7 @@ The DigiCampus essay evaluation prototype identifies similarly written student e
 
 The API is launched by running `./run_flask.sh` in the `digicampus-aligner` directory. In the `run_flask.sh`, two optional environmental variables can be defined to choose the underlying algorithm for text content identification.
 
-`METHOD` can be `tfidf`, `laser`, or `bert`.
+`METHOD` can be `tfidf`, `laser`, or `bert`. The methods `laser` and `bert` require a GPU.
 
 `THRESHOLD` sets the threshold at which a sentence is returned as a match for a another. The higher the threshold, the more similar a candidate has to be to the query to be a match.
 

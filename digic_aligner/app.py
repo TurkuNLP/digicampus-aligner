@@ -21,12 +21,13 @@ app.config['CODEDIR']=os.getenv("DIGIC_CODEHOME", "/home/ginter/digicampus-align
 
 #METHOD=os.getenv("METHOD", "tfidf")
 #THRESHOLD=float(os.getenv("THRESHOLD", "1.5"))
+vectorizer=None
 if METHOD=="tfidf":
     # Results on the tilinpäätös data not good, turn off
     #import pickle
     #with open("Data/vectorizer.pickle",'rb') as f:
     #    vectorizer=pickle.load(f)
-    vectorizer=None
+    pass
 
 doc_collections={}
 search_results={}
