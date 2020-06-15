@@ -2,14 +2,17 @@ import sklearn.feature_extraction
 import sklearn.metrics
 import numpy
 import sys
+import os
 import yaml
 import ufal.udpipe as udpipe
 from laserembeddings import Laser
 import datetime
 import torch
 import transformers
+from digic_aligner.variables import METHOD, THRESHOLD
 
-METHOD="bert"
+#THRESHOLD=float(os.getenv("THRESHOLD", "1.5"))
+#METHOD=os.getenv("METHOD", "tfidf")
 if METHOD=="bert":
     bert_model = transformers.BertModel.from_pretrained("TurkuNLP/bert-base-finnish-cased-v1")
     bert_model.eval()
@@ -45,15 +48,16 @@ class Doc:
         self.id=doc_dict["id"]
         if udpipe_pipeline is not None:
             self.preproc_udpipe(udpipe_pipeline)
-            
+
             if METHOD=="laser":
                 self.laser_emb=laser.embed_sentences(self.lines_and_tokens,lang="fi")
             elif METHOD=="bert":
                 tokenized_ids=[bert_tokenizer.encode(txt,add_special_tokens=True) for txt in self.lines_and_tokens] #this runs the BERT tokenizer, returns list of lists of integers
                 tokenized_ids_t=[torch.tensor(ids,dtype=torch.long) for ids in tokenized_ids] #turn lists of integers into torch tensors
                 tokenized_single_batch=torch.nn.utils.rnn.pad_sequence(tokenized_ids_t,batch_first=True)
-
                 self.bert_embedded=embed(tokenized_single_batch,bert_model)
+                if len(self.lines_and_tokens)==1:
+                    self.bert_embedded=self.bert_embedded.reshape(1, -1)
             
     def get_segmentation(self):
         #Tells the user how this document is segmented
@@ -84,12 +88,12 @@ class DocCollection:
         self.doc_doc_sim_matrix_tfidf,self.vectorizer=doc_sim_matrix_tfidf(self.docs,vectorizer) #if vectorizer is None, this function makes one, let's store it
         self.doc_doc_sim_matrix_tfids_margin=margin_doc_sim(self.doc_doc_sim_matrix_tfidf) #calculate also the margin-method based matrix (I dont think this has ever been done before!)
         
-    def query_by_doc_id(self,docid,method):
+    def query_by_doc_id(self,docid,method,margin_cutoff):
         #Which doc?
         print("LOOKING FOR",repr(docid))
         print("IDS",list(doc.id for doc in self.docs))
         qdoc=[doc for doc in self.docs if doc.id==docid][0]
-        return self.query(qdoc=qdoc,method=method)
+        return self.query(qdoc=qdoc,method=method,margin_cutoff=margin_cutoff)
         
     def get_doc_ids(self):
         return list(doc.id for doc in self.docs)
@@ -113,9 +117,10 @@ class DocCollection:
                 print("MARGIN",margin,file=sys.stderr)
                 if margin<margin_cutoff:
                     break
-                segment_pairs.append((qry_sent_idx,d_sent_idx,margin)) #store these indices and margin so we can give them back to the user
+                # numpy numbers cannot be jsonified later, convert type first
+                segment_pairs.append((int(qry_sent_idx),int(d_sent_idx),float(margin))) #store these indices and margin so we can give them back to the user
             if len(segment_pairs)>0:
-                doc_avg=sum(margin for i1,i2,margin in segment_pairs)/len(segment_pairs)
+                doc_avg=float(sum(margin for i1,i2,margin in segment_pairs)/len(segment_pairs))
             else:
                 continue #this one doesnt make the result
             doc_result={}
@@ -242,7 +247,5 @@ if __name__=="__main__":
     #     print(doc_target.lines_and_tokens[target_idx])
     #     print(margin)
     #     print()
-    r=doc_collection.query("Keiju leijailee metsässä, erityisesti reunoissa. Se paistaa sienestäjät kermassa.",margin_cutoff=2.5)
+    r=doc_collection.query("Keiju leijailee metsässä, erityisesti reunoissa. Se paistaa sienestäjät kermassa.",margin_cutoff=THRESHOLD)
     print(doc_collection.doc_doc_sim_matrix_tfids_margin.tolist())
-    
-    

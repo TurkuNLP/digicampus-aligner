@@ -2,7 +2,6 @@
 
 # Install
 ```
-mkdir Data
 cd Data
 wget https://lindat.mff.cuni.cz/repository/xmlui/bitstream/handle/11234/1-3131/finnish-tdt-ud-2.5-191206.udpipe
 cd ..

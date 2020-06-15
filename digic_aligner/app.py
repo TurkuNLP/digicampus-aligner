@@ -5,6 +5,7 @@ from flask import jsonify, url_for
 import yaml
 import requests
 from digic_aligner import doc
+from digic_aligner.variables import METHOD, THRESHOLD
 import ufal.udpipe as udpipe
 import html
 import itertools
@@ -18,7 +19,17 @@ app.config['DEBUGING'] = True
 app.config['TEMPLATES_AUTO_RELOAD']=True
 app.config['CODEDIR']=os.getenv("DIGIC_CODEHOME", "/home/ginter/digicampus-aligner")
 
+#METHOD=os.getenv("METHOD", "tfidf")
+#THRESHOLD=float(os.getenv("THRESHOLD", "1.5"))
+if METHOD=="tfidf":
+    # Results on the tilinpäätös data not good, turn off
+    #import pickle
+    #with open("Data/vectorizer.pickle",'rb') as f:
+    #    vectorizer=pickle.load(f)
+    vectorizer=None
+
 doc_collections={}
+search_results={}
 
 @app.route("/docs")
 def help():
@@ -27,6 +38,15 @@ def help():
 @app.route("/")
 def index_page():
     return flask.render_template("index.html")
+
+@app.route("/get_search_results/<doc_collection_id>",methods=['GET'])
+def get_search_results(doc_collection_id):
+    global search_results
+    try:
+        result=search_results[doc_collection_id]
+        return jsonify({"search_results":result})
+    except KeyError:
+        return "Unknown query",400
 
 @app.route("/get_doc_similarity_matrix/<doc_collection_id>",methods=['GET'])
 def get_doc_similarity_matrix(doc_collection_id):
@@ -42,7 +62,7 @@ def get_doc_similarity_matrix(doc_collection_id):
 
 @app.route("/upload_docs",methods=['POST'])
 def upload():
-    global doc_collections
+    global doc_collections, vectorizer
     doc_collection_id=datetime.datetime.now().isoformat()
     uploaded_file=flask.request.files.get('file')
     yaml_data=uploaded_file.read().decode("utf-8")
@@ -57,7 +77,7 @@ def upload():
     udpipe_model=udpipe.Model.load(modelpath)
     udpipe_pipeline=udpipe.Pipeline(udpipe_model,"tokenize","none","none","horizontal") # horizontal: ret
     
-    doc_collection=doc.DocCollection(data,udpipe_pipeline=udpipe_pipeline)
+    doc_collection=doc.DocCollection(data,udpipe_pipeline=udpipe_pipeline,vectorizer=vectorizer)
     doc_collections[doc_collection_id]=doc_collection
     indexed_docs=doc_collection.get_doc_ids()
     print("Indexed:",indexed_docs)
@@ -107,26 +127,29 @@ def get_template_data(result):
 
 @app.route("/qry_by_id/<doc_collection_id>/<docid>",methods=['GET'])
 def qry_by_id(doc_collection_id,docid):
-    global doc_collections
+    global doc_collections, THRESHOLD, search_results
     doc_collection=doc_collections.get(doc_collection_id)
     if doc_collection is None:
         return "Unknown collection", 400
-    result=doc_collection.query_by_doc_id(docid,method="bert")
+    result=doc_collection.query_by_doc_id(docid,method=METHOD,margin_cutoff=THRESHOLD)
+    query_id=doc_collection_id+docid
+    search_results[query_id]=result
+    print("RESULT:\n",result, file=sys.stderr)
     template_data,highlight_data=get_template_data(result)
     rendered=flask.render_template("result_templ.html",resultdata=template_data)
     print("Queried collection",doc_collection_id,file=sys.stderr)
-    return jsonify({"result_html":rendered,"highlight_data":highlight_data,"result":result}),200
+    #print("HIGHLIGHT_DATA:", highlight_data)
+    return jsonify({"result_html":rendered,"highlight_data":highlight_data,"query_id":query_id}),200
 
 @app.route("/qrytxt/<doc_collection_id>",methods=['POST'])
 def qry_text(doc_collection_id):
-    global doc_collections
+    global doc_collections, THRESHOLD, search_results
     doc_collection=doc_collections.get(doc_collection_id)
     if doc_collection is None:
         return "Unknown collection", 400
     text=flask.request.form["text"]
     if not text.strip():
-        #return jsonify({"result_html":""}),200 #TODO: I GUESS SOME ERROR SHOULD BE SHOWN
-        return "", 400
+        return "No input text as query", 400
     
     ### TODO: UDPIPE SEEMS SOMEHOW THREAD-UNSAFE
     ### I HAVE TO RELOAD IT HERE I DONT KNOW WHY
@@ -142,9 +165,13 @@ def qry_text(doc_collection_id):
 
     print("TEXT=",text)
     print(doc_collection)
-    result=doc_collection.query(text,method="laser")
-    template_data=get_template_data(result)
+    result=doc_collection.query(text,method=METHOD,margin_cutoff=THRESHOLD)
+    query_id=doc_collection_id
+    search_results[query_id]=result
+    template_data,highlight_data=get_template_data(result)
     rendered=flask.render_template("result_templ.html",resultdata=template_data)
     print("RETURNING",rendered)
-    return jsonify({"result_html":rendered}),200
+    #print('HIGHLIGHT_DATA', highlight_data)
+    print("Queried collection",doc_collection_id,file=sys.stderr)
+    return jsonify({"result_html":rendered,"highlight_data":highlight_data,"query_id":query_id}),200
 
