@@ -10,7 +10,7 @@ The API is launched by running `./run_flask.sh` in the `digicampus-aligner` dire
 
 `THRESHOLD` sets the threshold at which a sentence is returned as a match for a another. The higher the threshold, the more similar a candidate has to be to the query to be a match.
 
-If these two environmental variables are not set, the default values (`tfidf` with the threshold of `2.0`) is used.
+If these two environmental variables are not set, the default values (`tfidf` with the threshold of `2.0`) is used. With a GPU, the recommended method would be `laser` with the default threshold of `1.1`.
 
 After the launch in the terminal, the API can be accessed from the corresponding port on localhost.
 

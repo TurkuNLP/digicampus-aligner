@@ -7,7 +7,7 @@ def get_default_threshold(method):
     if method=="tfidf":
         return "1.7"
     elif method=="bert":
-        return "1.05"
+        return "1.07"
     elif method=="laser":
         return "1.1"
     else:
