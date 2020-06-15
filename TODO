@@ -13,6 +13,8 @@ Tested.
 3) API needs to be documented
 
 TODO
+- `md.html` template missing
+- documentation in `api_doc.md`, possibly needs some improvement/rewrite
 
 4) Document similarity matrix (doc_sim_matrix_tfidf and/or margin_doc_sim) should be exposed in the API
     4.1)   The structure returned by query_by_doc_id and query_tfidf should be exposed as json
