@@ -136,6 +136,7 @@
 	//This happens when you press the query button
 
 	function do_text_query() {
+	    $("#search_results").html("Calculating. Wait...");
 	    $.ajax({
 		type: "POST",    //define the type of ajax call (POST, GET, etc)
 		url: "/qrytxt/"+sessionStorage.doc_collection_id,   //The name of the script you are calling
@@ -159,6 +160,7 @@
 	};
 
 	function do_docid_query() {
+	    $("#search_results").html("Calculating. Wait...");
 	    $.ajax({
 		type: "GET",    //define the type of ajax call (POST, GET, etc)
 		url: "/qry_by_id/"+sessionStorage.doc_collection_id+"/"+($("#knowndocs").val()),   //The name of the script you are calling
