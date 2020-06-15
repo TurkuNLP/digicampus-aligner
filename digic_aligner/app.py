@@ -76,8 +76,12 @@ def upload():
     assert os.path.exists(modelpath)
     udpipe_model=udpipe.Model.load(modelpath)
     udpipe_pipeline=udpipe.Pipeline(udpipe_model,"tokenize","none","none","horizontal") # horizontal: ret
-    
-    doc_collection=doc.DocCollection(data,udpipe_pipeline=udpipe_pipeline,vectorizer=vectorizer)
+
+    # If the uploaded file is not in the correct format, this is where it breaks
+    try:
+        doc_collection=doc.DocCollection(data,udpipe_pipeline=udpipe_pipeline,vectorizer=vectorizer)
+    except TypeError:
+        return "",400
     doc_collections[doc_collection_id]=doc_collection
     indexed_docs=doc_collection.get_doc_ids()
     print("Indexed:",indexed_docs)

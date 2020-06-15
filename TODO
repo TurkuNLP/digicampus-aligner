@@ -29,9 +29,7 @@ TODO
 
 7) calls in API should be wrapped into try .. except so the application does not die on bad input
 
-TODO
-
-...
+[done]
 
 8) method and threshold could be made parameters of the launch script through env variables
 [done]

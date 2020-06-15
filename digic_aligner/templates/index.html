@@ -139,6 +139,12 @@
 		    sessionStorage.setItem("doc_collection_id",data["doc_collection_id"]);
 		    $("#loaded_collection").html("Loaded collection. <a href='/get_doc_similarity_matrix/"+data["doc_collection_id"]+"'>Doc Similarity Matrix</a>");
 		},
+		error: function(){},
+		    statusCode: {
+		    400: function(){
+			alert("Uploaded file format incorrect. Please refer to the documentation for the required format.");
+		    }
+		}
 	    })
 	}
 
