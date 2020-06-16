@@ -21,11 +21,11 @@ TODO
 
 5) Segmentation would be good to return in terms of character offsets (needs back-align to source text after udpipe)
 
-only if time
+[workaround] request the text twice from the udpipe server with different output formats. Now prints the sentence as a whole to the user.
 
 6) udpipe is not thread-safe, some solution is missing
 
-TODO
+[done]
 
 7) calls in API should be wrapped into try .. except so the application does not die on bad input
 

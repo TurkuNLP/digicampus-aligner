@@ -6,7 +6,6 @@ import yaml
 import requests
 from digic_aligner import doc
 from digic_aligner.variables import METHOD, THRESHOLD
-import ufal.udpipe as udpipe
 import html
 import itertools
 import datetime
@@ -69,18 +68,9 @@ def upload():
     yaml_data=uploaded_file.read().decode("utf-8")
     data=yaml.load(yaml_data)
 
-    ### TODO: UDPIPE SEEMS SOMEHOW THREAD-UNSAFE
-    ### I HAVE TO RELOAD IT HERE I DONT KNOW WHY
-    ### TODO: Verify this!
-    ### ...but right now this will do
-    modelpath=os.path.join(app.config["CODEDIR"],"Data","finnish-tdt-ud-2.5-191206.udpipe")
-    assert os.path.exists(modelpath)
-    udpipe_model=udpipe.Model.load(modelpath)
-    udpipe_pipeline=udpipe.Pipeline(udpipe_model,"tokenize","none","none","horizontal") # horizontal: ret
-
     # If the uploaded file is not in the correct format, this is where it breaks
     try:
-        doc_collection=doc.DocCollection(data,udpipe_pipeline=udpipe_pipeline,vectorizer=vectorizer)
+        doc_collection=doc.DocCollection(data,vectorizer=vectorizer)
     except TypeError:
         return "",400
     doc_collections[doc_collection_id]=doc_collection

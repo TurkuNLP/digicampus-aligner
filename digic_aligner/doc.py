@@ -9,9 +9,10 @@ from laserembeddings import Laser
 import datetime
 import torch
 import transformers
+import requests
 from digic_aligner.variables import METHOD, THRESHOLD
 
-#THRESHOLD=float(os.getenv("THRESHOLD", "1.5"))
+PORT=os.getenv("PORT", "5000")
 #METHOD=os.getenv("METHOD", "tfidf")
 if METHOD=="bert":
     bert_model = transformers.BertModel.from_pretrained("TurkuNLP/bert-base-finnish-cased-v1")
@@ -41,49 +42,49 @@ def embed(data,bert_model,how_to_pool="CLS"):
 
 class Doc:
 
-    def __init__(self,doc_dict,udpipe_pipeline=None):
+    def __init__(self,doc_dict):
         global laser, bert_model, bert_tokenizer
         self.doc_dict=doc_dict #this dictionary can have anything the user ever wants but must have "text" field and "id" field
         self.text=doc_dict["text"]
         self.id=doc_dict["id"]
-        if udpipe_pipeline is not None:
-            self.preproc_udpipe(udpipe_pipeline)
+        self.preproc_udpipe()
 
-            if METHOD=="laser":
-                self.laser_emb=laser.embed_sentences(self.lines_and_tokens,lang="fi")
-            elif METHOD=="bert":
-                tokenized_ids=[bert_tokenizer.encode(txt,add_special_tokens=True) for txt in self.lines_and_tokens] #this runs the BERT tokenizer, returns list of lists of integers
-                tokenized_ids_t=[torch.tensor(ids,dtype=torch.long) for ids in tokenized_ids] #turn lists of integers into torch tensors
-                tokenized_single_batch=torch.nn.utils.rnn.pad_sequence(tokenized_ids_t,batch_first=True)
-                self.bert_embedded=embed(tokenized_single_batch,bert_model)
-                if len(self.lines_and_tokens)==1:
-                    self.bert_embedded=self.bert_embedded.reshape(1, -1)
+        if METHOD=="laser":
+            self.laser_emb=laser.embed_sentences(self.lines_and_tokens,lang="fi")
+        elif METHOD=="bert":
+            tokenized_ids=[bert_tokenizer.encode(txt,add_special_tokens=True) for txt in self.lines_and_tokens] #this runs the BERT tokenizer, returns list of lists of integers
+            tokenized_ids_t=[torch.tensor(ids,dtype=torch.long) for ids in tokenized_ids] #turn lists of integers into torch tensors
+            tokenized_single_batch=torch.nn.utils.rnn.pad_sequence(tokenized_ids_t,batch_first=True)
+            self.bert_embedded=embed(tokenized_single_batch,bert_model)
+            if len(self.lines_and_tokens)==1:
+                self.bert_embedded=self.bert_embedded.reshape(1, -1)
             
     def get_segmentation(self):
         #Tells the user how this document is segmented
         #TODO: modify this to tell character offsets rather than the actual sentences that have been destroyed by now by udpipe's tokenization
         #Whatever this returns should have enough information for the user to know what we mean when we say "segment index 5 is aligned with something"
-        return {"segmented":self.lines_and_tokens}
+        return {"segmented":self.sentences}
         
             
-    def preproc_udpipe(self,udpipe_pipeline):
+    def preproc_udpipe(self):
         #This runs whatever preprocessing we need
         # Download UDPipe model from:
         # https://lindat.mff.cuni.cz/repository/xmlui/handle/11234/1-3131
         #
         # TODO: lemmatization/stemming/something would likely be quite useful for Finnish
         # TODO: store the result in some sort of Document object
-        segmented=udpipe_pipeline.process(self.text)
-        segmented=segmented.strip()
-        self.lines_and_tokens=[line.strip() for line in segmented.split("\n") if line.strip()]
+        r = requests.get('http://127.0.0.1:'+PORT+'/process', params={'data': self.text, 'tokenizer': ''})
+        self.sentences=[line[9:] for line in r.json()['result'].split('\n') if line.startswith('# text = ')]
+        r = requests.get('http://127.0.0.1:'+PORT+'/process', params={'data': self.text, 'tokenizer': '', 'output': 'horizontal'})
+        self.lines_and_tokens=[line.strip() for line in r.json()['result'].split("\n") if line.strip()]
+        assert len(self.sentences)==len(self.lines_and_tokens)
         #list of strings, each string is one whitespace-tokenized sentences, I don't split into tokens here on purpose
         #this is also a place to get lemmas and what have you
 
 class DocCollection:
 
-    def __init__(self,doc_dicts,udpipe_pipeline=None,vectorizer=None):
-        self.udpipe_pipeline=udpipe_pipeline
-        self.docs=[Doc(doc_dict,udpipe_pipeline) for doc_dict in doc_dicts]
+    def __init__(self,doc_dicts,vectorizer=None):
+        self.docs=[Doc(doc_dict) for doc_dict in doc_dicts]
         #1) Pre-compute the doc2doc sim matrix
         self.doc_doc_sim_matrix_tfidf,self.vectorizer=doc_sim_matrix_tfidf(self.docs,vectorizer) #if vectorizer is None, this function makes one, let's store it
         self.doc_doc_sim_matrix_tfids_margin=margin_doc_sim(self.doc_doc_sim_matrix_tfidf) #calculate also the margin-method based matrix (I dont think this has ever been done before!)
@@ -101,7 +102,7 @@ class DocCollection:
     def query(self,text=None,qdoc=None,method="tfidf",margin_cutoff=1.05): #margin cutoff on sentences, anything below that is not considered
         """Given a query text, find hitting documents and align them. Prepares a dictionary which can be returned to the user"""
         if qdoc is None:
-            qdoc=Doc({"text":text,"id":"qry"},udpipe_pipeline=self.udpipe_pipeline) #turn the query into a fake doc
+            qdoc=Doc({"text":text,"id":"qry"}) #turn the query into a fake doc
 
         doc_hits=[] #this will be a list of the hits
         for d in self.docs: #and compare against all docs (I don't think we should use a doc-embedding approach here since queries will be short, so we really want the alignment)
