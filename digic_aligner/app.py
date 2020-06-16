@@ -39,11 +39,11 @@ def help():
 def index_page():
     return flask.render_template("index.html")
 
-@app.route("/get_search_results/<doc_collection_id>",methods=['GET'])
-def get_search_results(doc_collection_id):
+@app.route("/get_search_results/<query_id>",methods=['GET'])
+def get_search_results(query_id):
     global search_results
     try:
-        result=search_results[doc_collection_id]
+        result=search_results[query_id]
         return jsonify({"search_results":result})
     except KeyError:
         return "Unknown query",400
