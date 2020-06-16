@@ -146,18 +146,6 @@ def qry_text(doc_collection_id):
     if not text.strip():
         return "No input text as query", 400
     
-    ### TODO: UDPIPE SEEMS SOMEHOW THREAD-UNSAFE
-    ### I HAVE TO RELOAD IT HERE I DONT KNOW WHY
-    ### TODO: do something for gods sake!
-    ### ...but right now this will have to do
-    modelpath=os.path.join(app.config["CODEDIR"],"Data","finnish-tdt-ud-2.5-191206.udpipe")
-    assert os.path.exists(modelpath)
-    udpipe_model=udpipe.Model.load(modelpath)
-    udpipe_pipeline=udpipe.Pipeline(udpipe_model,"tokenize","none","none","horizontal") # horizontal: ret
-    doc_collection.udpipe_pipeline=udpipe_pipeline
-    ### ^^^  THIS SUCKS!
-    
-
     print("TEXT=",text)
     print(doc_collection)
     result=doc_collection.query(text,method=METHOD,margin_cutoff=THRESHOLD)

@@ -4,7 +4,15 @@ The DigiCampus essay evaluation prototype identifies similarly written student e
 
 ## Launching the API
 
-The API is launched by running `./run_flask.sh` in the `digicampus-aligner` directory. In the `run_flask.sh`, two optional environmental variables can be defined to choose the underlying algorithm for text content identification.
+The API is launched by running `./run_flask.sh` in the `digicampus-aligner` directory.
+
+### Setting the port for udpipe
+
+Udpipe is used to preprocess essays. The script `run_flask.sh` starts a separate single-threaded server process for it. The port used for this process is defined by the environmental variable `PORT`. By default, port 5000 is used.
+
+### Setting the algorithm to be used
+
+In `run_flask.sh`, two optional environmental variables can be defined to choose the underlying algorithm for text content identification.
 
 `METHOD` can be `tfidf`, `laser`, or `bert`. The methods `laser` and `bert` require a GPU.
 
@@ -24,7 +32,7 @@ To upload a yaml file, click browse and open the yaml file. A successfully loade
 
 There are two ways of querying: query by document, or query by text. Query by document uses a selected document as the query, and returns documents that are similar as calculated by the algorithm.
 
-The preprocessing breaks any documents (essays or query text) into sentences. The returned results have automatically detected similar sentences in green. These green sentences can be clicked on by the cursor to have their corresponding similar sentences highlighted.
+The preprocessing breaks any documents (essays or query text) into sentences. The returned results have automatically detected similar sentences in green. These green sentences can be clicked by the cursor to have their corresponding similar sentences highlighted.
 
 The search results are exposed as json, which can be accessed with the link `Search result` that appears after the search under the `Text query` button. The format of the json file is as follow: `search_results` contains `hits` and `qry_segmentation` (query segmentation). `hits` is a list, where each item is a retrieved document. `matching_segments` stores a list of tuples, where the first element in the tuple is the sentence index of the matching sentence from the query document, the second element is the sentence index of the matching sentence from the retrieved document, and the third element is the similarity score between these two sentences.
 
