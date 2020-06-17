@@ -14,7 +14,7 @@ The environmental variables can be set in the `run_flask.sh` script.
 
 ### The port used by udpipe `PORT`
 
-Udpipe is used to preprocess essays and a single-threaded server process for it is started in the script `run_flask.sh`. Defaults to 5000.
+Udpipe is used to preprocess essays and a single-threaded server process for it is started in the script `run_flask.sh`. Defaults to 6000.
 
 
 ### Setting the algorithm to be used `METHOD`

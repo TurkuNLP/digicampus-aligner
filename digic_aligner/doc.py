@@ -12,7 +12,7 @@ import transformers
 import requests
 from digic_aligner.variables import METHOD, THRESHOLD
 
-PORT=os.getenv("PORT", "5000")
+PORT=os.getenv("PORT", "6000")
 #METHOD=os.getenv("METHOD", "tfidf")
 if METHOD=="bert":
     bert_model = transformers.BertModel.from_pretrained("TurkuNLP/bert-base-finnish-cased-v1")
