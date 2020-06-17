@@ -9,6 +9,7 @@ from laserembeddings import Laser
 import datetime
 import torch
 import transformers
+from sentence_transformers import SentenceTransformer
 import requests
 from digic_aligner.variables import METHOD, THRESHOLD
 
@@ -22,6 +23,8 @@ if METHOD=="bert":
     bert_tokenizer = transformers.BertTokenizer.from_pretrained("TurkuNLP/bert-base-finnish-cased-v1")
 elif METHOD=="laser":
     laser = Laser()
+elif METHOD=="sbert":
+    sbert_model = SentenceTransformer("Data/finnish-sbert-xnli")
 
 def embed(data,bert_model,how_to_pool="CLS"):
     with torch.no_grad(): #tell the model not to gather gradients
@@ -43,7 +46,7 @@ def embed(data,bert_model,how_to_pool="CLS"):
 class Doc:
 
     def __init__(self,doc_dict):
-        global laser, bert_model, bert_tokenizer
+        global laser, bert_model, bert_tokenizer, sbert_model
         self.doc_dict=doc_dict #this dictionary can have anything the user ever wants but must have "text" field and "id" field
         self.text=doc_dict["text"]
         self.id=doc_dict["id"]
@@ -58,6 +61,8 @@ class Doc:
             self.bert_embedded=embed(tokenized_single_batch,bert_model)
             if len(self.lines_and_tokens)==1:
                 self.bert_embedded=self.bert_embedded.reshape(1, -1)
+        elif METHOD=="sbert":
+            self.sbert_embedded=sbert_model.encode(self.sentences)
             
     def get_segmentation(self):
         #Tells the user how this document is segmented
@@ -112,6 +117,8 @@ class DocCollection:
                 swise_sim=sentence_wise_sim_laser(qdoc,d)
             elif method=="bert":
                 swise_sim=sentence_wise_sim_bert(qdoc,d)
+            elif method=="sbert":
+                swise_sim=sentence_wise_sim_sbert(qdoc,d)
             overlaps=overlapping_segments(swise_sim)
             segment_pairs=[]
             for qry_sent_idx,d_sent_idx,margin in zip(*overlaps): #here we have the actual alignments of query sentences with d's sentences
@@ -197,6 +204,13 @@ def sentence_wise_sim_laser(d1_segm,d2_segm):
 def sentence_wise_sim_bert(d1_segm,d2_segm):
     embeddings_d1 = d1_segm.bert_embedded
     embeddings_d2 = d2_segm.bert_embedded
+    segment_wise_matrix=sklearn.metrics.pairwise.cosine_similarity(embeddings_d1,embeddings_d2,dense_output=True)
+    #this is now d1 segments by d2 segments similarity matrix
+    return segment_wise_matrix
+
+def sentence_wise_sim_sbert(d1_segm,d2_segm):
+    embeddings_d1 = d1_segm.sbert_embedded
+    embeddings_d2 = d2_segm.sbert_embedded
     segment_wise_matrix=sklearn.metrics.pairwise.cosine_similarity(embeddings_d1,embeddings_d2,dense_output=True)
     #this is now d1 segments by d2 segments similarity matrix
     return segment_wise_matrix

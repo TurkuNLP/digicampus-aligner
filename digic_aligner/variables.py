@@ -10,6 +10,8 @@ def get_default_threshold(method):
         return "1.07"
     elif method=="laser":
         return "1.1"
+    elif method=="sbert":
+        return "1.30"
     else:
         raise ValueError("Unknown method")
 
