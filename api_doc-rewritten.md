@@ -83,17 +83,17 @@ Returns:
 
 Exposes search results from document or text query as json.
 
-Endpoints:
+##### Endpoints:
 
 &emsp;GET /get_search_results/<query_id>
 
-Parameters:
+##### Parameters:
 
 &emsp;query_id, required:
 
 &emsp;&emsp;string returned by qry_by_id or qry_text
 
-Returns:
+##### Returns:
 
 &emsp;a search result json object containing
 
@@ -120,15 +120,15 @@ Returns:
 
 Query by a document from a collection. Searches for similar essays in the collection.
 
-Endpoints:
-  GET /qry_by_id/<doc_collection_id>/<docid>
-Parameters:
-  doc_collection_id, required:
-    string, document collection id `doc_collection_id` returned by `upload`
-  docid, required:
-    string, document id returned by `upload`
-Returns:
-  a json object containing
+- Endpoints:
+  - GET /qry_by_id/<doc_collection_id>/<docid>
+- Parameters:
+  - doc_collection_id, required:
+    - string, document collection id `doc_collection_id` returned by `upload`
+  - docid, required:
+    - string, document id returned by `upload`
+- Returns:
+  - a json object containing
     - `result_html`: result of the search in html
     - `highlight_data`: dictionary where the key is the sentence id of a sentence that can be highlighted, and the value is a list of sentences to be highlighted for a given sentence
     - `query_id`: id assigned for a particular query
