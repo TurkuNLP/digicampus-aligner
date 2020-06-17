@@ -33,7 +33,7 @@ Sets the threshold at which a sentence is returned as a match for another. The h
 optional, defaults to `1.7` for `tfidf`, `1.1` for `laser`, and `1.07` for `bert`
 
 
-## <what should this be called>
+## What should this section be called?
 
 ### Upload documents `upload`
 
