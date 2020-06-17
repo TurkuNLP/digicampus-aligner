@@ -8,7 +8,7 @@ The DigiCampus essay evaluation prototype identifies similarly written student e
 Launch the API from terminal with the command `./run_flask.sh`. In the browser, access the corresponding port on localhost. Upload a set of documents in yaml format and query.
 
 
-## Environmental variables
+## Environmental variables for launching the API
 
 The environmental variables can be set in the `run_flask.sh` script.
 
@@ -16,26 +16,30 @@ The environmental variables can be set in the `run_flask.sh` script.
 
 Udpipe is used to preprocess essays and a single-threaded server process for it is started in the script `run_flask.sh`. Defaults to 5000.
 
-'''
-### Setting the algorithm to be used
 
-In `run_flask.sh`, two optional environmental variables can be defined to choose the underlying algori
-thm for text content identification.
+### Setting the algorithm to be used `METHOD`
 
-`METHOD` can be `tfidf`, `laser`, or `bert`. The methods `laser` and `bert` require a GPU.
+Choose the underlying algorithm for text content identification.
 
-`THRESHOLD` sets the threshold at which a sentence is returned as a match for a another. The higher th
-e threshold, the more similar a candidate has to be to the query to be a match.
+optional, defaults to `tfidf`
 
-If these two environmental variables are not set, the default values (`tfidf` with the threshold of `2.0`) is used. With a GPU, the recommended method would be `laser` with the default threshold of `1.1`.
-'''
+Possible values: {`tfidf`, `laser`, `bert`}, `laser` and `bert` require a GPU. `laser` is recommended when there is access to a GPU.
 
-## <sth here>
+
+### Setting the cutoff for sentence similarity `THRESHOLD`
+
+Sets the threshold at which a sentence is returned as a match for another. The higher the threshold, the more similar a candidate has to be to the query to be a match.
+
+optional, defaults to `1.7` for `tfidf`, `1.1` for `laser`, and `1.07` for `bert`
+
+
+## <what should this be called>
 
 ### Upload documents `upload`
 
 Uploads the essays in yaml format. The essays to be processed together are to be uploaded as a single yaml file. The yaml file is a list of dictionary, where an item in the dictionary is a document (essay). There are two mandatory keys for a dictionary: `id` as the id of the document, and `text` for the content of the document.
 
+<pre>
 Endpoints:
   POST /upload_docs
 Parameters:
@@ -44,7 +48,7 @@ Returns:
   a json object containing
     - `indexed_documents`: ids of the documents in the collection
     - `doc_collection_id`: id assigned for the uploaded collection
-
+</pre>
 
 ### Get document similarity matrix for a set of documents `get_doc_similarity_matrix`
 
@@ -54,7 +58,7 @@ Endpoints:
   GET /get_doc_similarity_matrix/<doc_collection_id>
 Parameters:
   doc_collection_id, required:
-    document collection id `doc_collection_id` returned by `upload`
+    string, document collection id `doc_collection_id` returned by `upload`
 Returns:
   a json object containing
     - `doc_ids`: list of all the ids of the uploaded collection
@@ -91,9 +95,9 @@ Endpoints:
   GET /qry_by_id/<doc_collection_id>/<docid>
 Parameters:
   doc_collection_id, required:
-    document collection id `doc_collection_id` returned by `upload`
+    string, document collection id `doc_collection_id` returned by `upload`
   docid, required:
-    document id returned by `upload`
+    string, document id returned by `upload`
 Returns:
   a json object containing
     - `result_html`: result of the search in html
@@ -109,7 +113,7 @@ Endpoints:
   POST /qrytxt/<doc_collection_id>
 Parameters:
   doc_collection_id, required:
-    document collection id `doc_collection_id` returned by `upload`
+    string, document collection id `doc_collection_id` returned by `upload`
 Returns:
   a json object containing
     - `result_html`: result of the search in html
@@ -118,3 +122,36 @@ Returns:
 
 
 ## Errors
+
+### Uploaded file format incorrect. Please refer to the documentation for the required format.
+
+The essays to be processed together are to be uploaded as a single yaml file. The yaml file is a list of dictionary, where an item in the dictionary is a document (essay). There are two mandatory keys for a dictionary: `id` as the id of the document, and `text` for the content of the document.
+
+Example yaml file:
+
+```
+- id: d0
+  text: "This is a fake student essay. The document id can be any strings as long as there is no duplicate."
+- id: d1
+  text: "This is another fake student essay. An essay has multiple sentences. Let's make it three."
+```
+
+
+### No input text as query
+
+No text in the box for text query. The `text query` button is not intended for document query.
+
+
+### No matching results
+
+No document with similarity scores exceeding the threshold was found. Please lower the threshold.
+
+
+### Unknown collection
+
+The document collection id specified was not found.
+
+
+### Unknown query
+
+The query id was not found.
