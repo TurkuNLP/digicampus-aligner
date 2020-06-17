@@ -23,14 +23,14 @@ Choose the underlying algorithm for text content identification.
 
 optional, defaults to `tfidf`
 
-Possible values: {`tfidf`, `laser`, `bert`}, `laser` and `bert` require a GPU. `laser` is recommended when there is access to a GPU.
+Possible values: {`tfidf`, `laser`, `bert`, `sbert`}, `laser`, `bert`, and `sbert` require a GPU. `laser` is recommended when there is access to a GPU.
 
 
 ### Setting the cutoff for sentence similarity `THRESHOLD`
 
 Sets the threshold at which a sentence is returned as a match for another. The higher the threshold, the more similar a candidate has to be to the query to be a match.
 
-optional, defaults to `1.7` for `tfidf`, `1.1` for `laser`, and `1.07` for `bert`
+optional, defaults to `1.7` for `tfidf`, `1.1` for `laser`, `1.07` for `bert`, and `0.85` for `sbert`.
 
 
 ## API reference

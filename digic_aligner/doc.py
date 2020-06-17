@@ -218,6 +218,7 @@ def sentence_wise_sim_sbert(d1_segm,d2_segm):
 
 # This takes the result of sentence_wise_sim() is agnostic to how that was done, right now we only have the tfidf version, but should work with anything
 def overlapping_segments(segment_wise_matrix):
+    global METHOD
     M=segment_wise_matrix #just make this shorter in name
     #assumption: M is a similarity matrix of N1 x N2 elements, where N1 are segments from doc1 and N2 are segments from doc2
     #note: right now these are sentences, but I think whatever overlapping segments should be doable too
@@ -234,7 +235,10 @@ def overlapping_segments(segment_wise_matrix):
     #https://arxiv.org/pdf/1811.01136
     sorted_M=-numpy.sort(-M,axis=-1) #funny how numpy sort does not have order parameter; this sorts target similarities (second dimension) for every source doc (first dimension)
     means_of_nearest=sorted_M[:,:10].mean(axis=-1)+0.00001  #10 neighbors seems a decent consensus, add a little epsilon not to divide by zero
-    margin=sorted_M[:,0]/means_of_nearest #the sim of nearest doc divided by avg of sims of 10 nearest docs: the (c) method from the paper above
+    if METHOD=='sbert': # SBERT works better without the margin
+        margin=sorted_M[:,0] #/means_of_nearest
+    else:
+        margin=sorted_M[:,0] /means_of_nearest #the sim of nearest doc divided by avg of sims of 10 nearest docs: the (c) method from the paper above
     targets=(-M).argsort(axis=-1)[:,0] #for every shorter document segment, this is the corresponding longer document segment 
     sources=numpy.arange(M.shape[0]) #indices into the shorter document basically (0,1,2,3....) so we can sort later
     

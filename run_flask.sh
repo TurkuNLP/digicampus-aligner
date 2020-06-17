@@ -9,4 +9,6 @@ PORT=5000
 ./udpipe/src/rest_server/udpipe_server $PORT fi fi Data/finnish-tdt-ud-2.5-191206.udpipe acknowledgement &
 UDPIPE_PID=$(ps | grep udpipe | grep -Po '^\d+')
 
-FLASK_APP=digic_aligner.app FLASK_ENV=development DIGIC_CODEHOME=$(pwd) PORT=$PORT flask run
+source /home/ginter/venv-digicampus/bin/activate
+
+FLASK_APP=digic_aligner.app FLASK_ENV=development DIGIC_CODEHOME=$(pwd) METHOD="sbert" THRESHOLD="0.85" PORT=$PORT flask run --port <ssh -L port number>
