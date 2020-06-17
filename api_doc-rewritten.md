@@ -39,81 +39,51 @@ optional, defaults to `1.7` for `tfidf`, `1.1` for `laser`, and `1.07` for `bert
 
 Uploads the essays in yaml format. The essays to be processed together are to be uploaded as a single yaml file. The yaml file is a list of dictionary, where an item in the dictionary is a document (essay). There are two mandatory keys for a dictionary: `id` as the id of the document, and `text` for the content of the document.
 
-Endpoints:
-
-&emsp;POST /upload_docs
-
-Parameters:
-
-&emsp;None
-
-Returns:
-
-&emsp;a json object containing
-  
-&emsp;&emsp;- `indexed_documents`: ids of the documents in the collection
-    
-&emsp;&emsp;- `doc_collection_id`: id assigned for the uploaded collection
+- Endpoints:
+  - POST /upload_docs
+- Parameters:
+  - None
+- Returns:
+  - a json object containing
+    - `indexed_documents`: ids of the documents in the collection
+    - `doc_collection_id`: id assigned for the uploaded collection
 
 
 ### Get document similarity matrix for a set of documents `get_doc_similarity_matrix`
 
 Exposes the document similarity matrix as json.
 
-Endpoints:
-
-&emsp;GET /get_doc_similarity_matrix/<doc_collection_id>
-
-Parameters:
-
-&emsp;doc_collection_id, required:
-
-&emsp;&emsp;string, document collection id `doc_collection_id` returned by `upload`
-
-Returns:
-
-&emsp;a json object containing
-
-&emsp;&emsp;- `doc_ids`: list of all the ids of the uploaded collection
-
-&emsp;&emsp;- `M`: similarity matrix of the uploaded collection
+- Endpoints:
+  - GET /get_doc_similarity_matrix/<doc_collection_id>
+- Parameters:
+  - doc_collection_id, required:
+    - string, document collection id `doc_collection_id` returned by `upload`
+- Returns:
+  - a json object containing
+    - `doc_ids`: list of all the ids of the uploaded collection
+    - `M`: similarity matrix of the uploaded collection
 
 
 ### Get search results `get_search_results`
 
 Exposes search results from document or text query as json.
 
-##### Endpoints:
-
-&emsp;GET /get_search_results/<query_id>
-
-##### Parameters:
-
-&emsp;query_id, required:
-
-&emsp;&emsp;string returned by qry_by_id or qry_text
-
-##### Returns:
-
-&emsp;a search result json object containing
-
-&emsp;&emsp;- `hits`: a list of retrieved documents
-
-&emsp;&emsp;&emsp;- `avg_match`: the average of the similarity scores of all matching segments
-
-&emsp;&emsp;&emsp;- `matching segments`: list of tuples with three elements
-
-&emsp;&emsp;&emsp;&emsp;- first element: the sentence index of the matching sentence from the query document
-
-&emsp;&emsp;&emsp;&emsp;- second element: the sentence index of the matching sentence from the retrieved document
-
-&emsp;&emsp;&emsp;&emsp;- third element: the similarity score between these two sentences
-
-&emsp;&emsp;&emsp;- `target_id`: id of the matching document
-
-&emsp;&emsp;&emsp;- `target_segmentation`: the retrieved document segmented into sentences
-
-&emsp;&emsp;- `qry_segmentation`: the query text segmented into sentences
+- Endpoints:
+  - GET /get_search_results/<query_id>
+- Parameters:
+  - query_id, required:
+    - string returned by qry_by_id or qry_text
+- Returns:
+  - a search result json object containing
+    - `hits`: a list of retrieved documents
+      - `avg_match`: the average of the similarity scores of all matching segments
+      - `matching segments`: list of tuples with three elements
+        - first element: the sentence index of the matching sentence from the query document
+        - second element: the sentence index of the matching sentence from the retrieved document
+        - third element: the similarity score between these two sentences
+      - `target_id`: id of the matching document
+      - `target_segmentation`: the retrieved document segmented into sentences
+    - `qry_segmentation`: the query text segmented into sentences
 
 
 ### Query by document `qry_by_id`
@@ -138,13 +108,13 @@ Query by a document from a collection. Searches for similar essays in the collec
 
 Query by text. The text can range from a single sentence to an essay. The input text is processed as a document (an essay). Searches for similar essays in the collection.
 
-Endpoints:
-  POST /qrytxt/<doc_collection_id>
-Parameters:
-  doc_collection_id, required:
-    string, document collection id `doc_collection_id` returned by `upload`
-Returns:
-  a json object containing
+- Endpoints:
+  - POST /qrytxt/<doc_collection_id>
+- Parameters:
+  - doc_collection_id, required:
+    - string, document collection id `doc_collection_id` returned by `upload`
+- Returns:
+  - a json object containing
     - `result_html`: result of the search in html
     - `highlight_data`: dictionary where the key is the sentence id of a sentence that can be highlighted, and the value is a list of sentences to be highlighted for a given sentence
     - `query_id`: id assigned for a particular query
