@@ -5,8 +5,8 @@ function on_exit {
 }
 trap on_exit EXIT
 
-PORT=5000
-./udpipe/src/rest_server/udpipe_server $PORT fi fi Data/finnish-tdt-ud-2.5-191206.udpipe acknowledgement &
+UDPIPE_PORT=6000
+./udpipe/src/rest_server/udpipe_server $UDPIPE_PORT fi fi Data/finnish-tdt-ud-2.5-191206.udpipe acknowledgement &
 UDPIPE_PID=$(ps | grep udpipe | grep -Po '^\d+')
 
-FLASK_APP=digic_aligner.app FLASK_ENV=development DIGIC_CODEHOME=$(pwd) PORT=$PORT flask run
+FLASK_APP=digic_aligner.app FLASK_ENV=development DIGIC_CODEHOME=$(pwd) METHOD=laser PORT=$UDPIPE_PORT flask run $*
