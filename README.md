@@ -22,9 +22,13 @@ python3 -m laserembeddings download-models
 
 # Run
 
-In the directory run 'run_flask.sh', go to the address in the browser
+## Prepare data
 
-1) Load the file test_docs.yaml
+The API takes in essays in the yaml format. A yaml file has all the essays that are to be compared in it. To generate the yaml file, run `python3 generate_yaml.py <dir_path>`, where `<dir_path>` is the directory containing the essays, each in a txt file. A yaml file is generated, which can be uploaded to the API.
+
+## In the directory run 'run_flask.sh', go to the address in the browser
+
+1) Load the yaml file
 
 2) Once loaded (document ids will be populated in the dropdown) you can query by document or query by text
 
