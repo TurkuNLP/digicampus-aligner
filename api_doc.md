@@ -30,7 +30,7 @@ Possible values: {`tfidf`, `laser`, `bert`}, `laser` and `bert` require a GPU. `
 
 Sets the threshold at which a sentence is returned as a match for another. The higher the threshold, the more similar a candidate has to be to the query to be a match.
 
-optional, defaults to `1.7` for `tfidf`, `1.1` for `laser`, and `1.07` for `bert`
+optional, defaults to `1.3` for `tfidf`, `1.1` for `laser`, and `1.03` for `bert`
 
 
 ## API reference
